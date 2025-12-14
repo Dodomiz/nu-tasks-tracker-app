@@ -1,0 +1,24 @@
+{
+    "name": "nu-tasks-tracker-app",
+    "version": "1.0.0",
+    "private": true,
+    "description": "NU Tasks Management Application - Cross-platform task management with gamification",
+    "scripts": {
+        "dev": "concurrently --kill-others-on-fail \"npm run dev:backend\" \"npm run dev:web\"",
+        "dev:backend": "cd backend/src/TasksTracker.Api && dotnet watch run",
+        "dev:web": "cd web && npm run dev",
+        "build": "npm run build:backend && npm run build:web",
+        "build:backend": "cd backend && dotnet build",
+        "build:web": "cd web && npm run build",
+        "install:web": "cd web && npm install",
+        "test:backend": "cd backend && dotnet test",
+        "test:web": "cd web && npm run test"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    },
+    "engines": {
+        "node": ">=18.0.0",
+        "npm": ">=9.0.0"
+    }
+}

@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{51683AEC-866D-46B3-8FED-A5C3A7D70D4C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{99B71FF1-2B8F-437F-94D0-0A0CAEC8DE45}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasksTracker.Api", "backend\src\TasksTracker.Api\TasksTracker.Api.csproj", "{01883622-C8F8-4024-8417-65C13491AA33}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{01883622-C8F8-4024-8417-65C13491AA33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01883622-C8F8-4024-8417-65C13491AA33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01883622-C8F8-4024-8417-65C13491AA33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01883622-C8F8-4024-8417-65C13491AA33}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{99B71FF1-2B8F-437F-94D0-0A0CAEC8DE45} = {51683AEC-866D-46B3-8FED-A5C3A7D70D4C}
+		{01883622-C8F8-4024-8417-65C13491AA33} = {99B71FF1-2B8F-437F-94D0-0A0CAEC8DE45}
+	EndGlobalSection
+EndGlobal
