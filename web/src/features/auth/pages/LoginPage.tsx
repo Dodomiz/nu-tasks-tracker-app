@@ -1,10 +1,13 @@
 import { useState, FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useLoginMutation } from '../authApi';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { setCredentials } from '../authSlice';
 
 export default function LoginPage() {
+  const location = useLocation();
+  const successMessage = (location.state as any)?.message;
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -50,6 +53,11 @@ export default function LoginPage() {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {successMessage && (
+            <div className="rounded-md bg-green-50 p-4">
+              <p className="text-sm text-green-800">{successMessage}</p>
+            </div>
+          )}
           {error && (
             <div className="rounded-md bg-red-50 p-4">
               <p className="text-sm text-red-800">{error}</p>
@@ -88,6 +96,15 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Link
+              to="/forgot-password"
+              className="text-sm font-medium text-primary-600 hover:text-primary-500"
+            >
+              Forgot your password?
+            </Link>
           </div>
 
           <div>

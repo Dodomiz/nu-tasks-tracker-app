@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using Serilog;
@@ -10,12 +12,9 @@ using TasksTracker.Api.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog
+// Configure Serilog - reads all configuration from appsettings.json
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .WriteTo.File("logs/tasksTracker-.log", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -24,7 +23,7 @@ builder.Host.UseSerilog();
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 
-builder.Services.AddSingleton<IMongoClient>(sp =>
+builder.Services.AddSingleton<IMongoClient>(_ =>
 {
     var settings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
     return new MongoClient(settings!.ConnectionString);
@@ -41,6 +40,9 @@ builder.Services.AddSingleton<MongoDbContext>();
 
 // Register Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// Register Services
+builder.Services.AddScoped<TasksTracker.Api.Features.Auth.Services.IAuthService, TasksTracker.Api.Features.Auth.Services.AuthService>();
 
 // Add JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -89,10 +91,14 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure HTTP request pipeline
-if (app.Environment.IsDevelopment())
+if (!app.Environment.IsProduction())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TasksTracker API v1"));
+    app.UseSwaggerUI(c => 
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TasksTracker API v1");
+        c.RoutePrefix = "swagger";
+    });
 }
 
 // Use custom error handling middleware
@@ -111,6 +117,25 @@ app.MapControllers();
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
    .WithName("HealthCheck")
    .WithOpenApi();
+
+// Log URLs after server starts
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    var addresses = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>();
+    if (addresses != null && addresses.Addresses.Any())
+    {
+        foreach (var address in addresses.Addresses)
+        {
+            Log.Information("Now listening on: {Address}", address);
+        }
+        
+        var firstAddress = addresses.Addresses.First();
+        if (!app.Environment.IsProduction())
+        {
+            Log.Information("Swagger UI: {SwaggerUrl}/swagger", firstAddress);
+        }
+    }
+});
 
 try
 {
