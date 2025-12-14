@@ -1,6 +1,14 @@
 # NU - Tasks Management Application
 
+[![GitHub](https://img.shields.io/badge/GitHub-Dodomiz%2Fnu--tasks--tracker--app-blue?logo=github)](https://github.com/Dodomiz/nu-tasks-tracker-app)
+[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
+[![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-4.4%2B-47A248?logo=mongodb)](https://www.mongodb.com/)
+
 Cross-platform task management application for families, couples, roommates, and small businesses with gamification features including leaderboards, competitive races, and rewards.
+
+**Repository:** https://github.com/Dodomiz/nu-tasks-tracker-app
 
 ## 📋 Project Overview
 
@@ -292,9 +300,56 @@ Proprietary - All rights reserved
 - Backend Developer: [TBD]
 - Frontend Developer: [TBD]
 
+## 🔄 Git Workflow
+
+### Cloning the Repository
+
+```bash
+git clone https://github.com/Dodomiz/nu-tasks-tracker-app.git
+cd nu-tasks-tracker-app
+```
+
+### Branching Strategy
+
+- `main` - Production-ready code
+- `develop` - Integration branch (planned)
+- `feature/*` - New features
+- `bugfix/*` - Bug fixes
+- `hotfix/*` - Critical production fixes
+
+### Making Changes
+
+```bash
+# Create a feature branch
+git checkout -b feature/my-new-feature
+
+# Make your changes
+git add .
+git commit -m "feat: Add new feature"
+
+# Push to GitHub
+git push origin feature/my-new-feature
+```
+
+### Commit Message Convention
+
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation changes
+- `refactor:` - Code refactoring
+- `test:` - Adding tests
+- `chore:` - Maintenance tasks
+
 ## 🤝 Contributing
 
-This is a private project. Please contact the project owner for contribution guidelines.
+This project is open for contributions! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+For major changes, please open an issue first to discuss what you would like to change.
 
 ---
 
