@@ -1,0 +1,104 @@
+{
+    "common": {
+        "appName": "NU Tasks Tracker",
+        "loading": "טוען...",
+        "error": "שגיאה",
+        "success": "הצלחה",
+        "save": "שמור",
+        "cancel": "ביטול",
+        "close": "סגור",
+        "delete": "מחק",
+        "confirm": "אישור",
+        "edit": "ערוך",
+        "create": "צור",
+        "update": "עדכן"
+    },
+    "auth": {
+        "login": {
+            "title": "התחבר ל-NU",
+            "email": "כתובת אימייל",
+            "password": "סיסמה",
+            "submit": "התחבר",
+            "submitting": "מתחבר...",
+            "forgotPassword": "שכחת את הסיסמה?",
+            "noAccount": "או",
+            "createAccount": "צור חשבון חדש",
+            "failed": "ההתחברות נכשלה. אנא נסה שוב."
+        },
+        "register": {
+            "title": "צור חשבון",
+            "firstName": "שם פרטי",
+            "lastName": "שם משפחה",
+            "email": "כתובת אימייל",
+            "password": "סיסמה",
+            "confirmPassword": "אימות סיסמה",
+            "submit": "צור חשבון",
+            "submitting": "יוצר חשבון...",
+            "hasAccount": "או",
+            "signIn": "התחבר לחשבון שלך",
+            "failed": "ההרשמה נכשלה. אנא נסה שוב.",
+            "passwordMismatch": "הסיסמאות אינן תואמות",
+            "passwordTooShort": "הסיסמה חייבת להיות לפחות 8 תווים"
+        },
+        "forgotPassword": {
+            "title": "איפוס סיסמה",
+            "description": "הזן את כתובת האימייל שלך ונשלח לך קישור לאיפוס הסיסמה.",
+            "email": "כתובת אימייל",
+            "submit": "שלח קישור",
+            "submitting": "שולח...",
+            "backToLogin": "חזור להתחברות",
+            "success": "קישור לאיפוס סיסמה נשלח! בדוק את האימייל שלך.",
+            "failed": "שליחת הקישור נכשלה. אנא נסה שוב."
+        },
+        "resetPassword": {
+            "title": "צור סיסמה חדשה",
+            "password": "סיסמה חדשה",
+            "confirmPassword": "אימות סיסמה חדשה",
+            "submit": "אפס סיסמה",
+            "submitting": "מאפס...",
+            "success": "איפוס הסיסמה הושלם! כעת ניתן להתחבר.",
+            "failed": "איפוס הסיסמה נכשל. אנא נסה שוב.",
+            "invalidToken": "קישור לא תקין או פג תוקף.",
+            "passwordMismatch": "הסיסמאות אינן תואמות"
+        },
+        "profile": {
+            "title": "פרופיל",
+            "firstName": "שם פרטי",
+            "lastName": "שם משפחה",
+            "email": "כתובת אימייל",
+            "save": "שמור שינויים",
+            "saving": "שומר...",
+            "success": "הפרופיל עודכן בהצלחה",
+            "failed": "עדכון הפרופיל נכשל",
+            "changePassword": "שינוי סיסמה",
+            "currentPassword": "סיסמה נוכחית",
+            "newPassword": "סיסמה חדשה",
+            "confirmNewPassword": "אימות סיסמה חדשה"
+        },
+        "logout": "התנתק"
+    },
+    "dashboard": {
+        "title": "לוח בקרה",
+        "welcome": "שלום, {{name}}!",
+        "myTasks": "המשימות שלי",
+        "noTasks": "אין לך משימות עדיין.",
+        "createTask": "צור את המשימה הראשונה שלך",
+        "tasks": "משימות",
+        "completedTasks": "משימות שהושלמו",
+        "pendingTasks": "משימות ממתינות"
+    },
+    "settings": {
+        "title": "הגדרות",
+        "language": "שפה",
+        "profile": "פרופיל",
+        "preferences": "העדפות",
+        "notifications": "התראות"
+    },
+    "errors": {
+        "generic": "משהו השתבש. אנא נסה שוב.",
+        "network": "שגיאת רשת. אנא בדוק את החיבור שלך.",
+        "unauthorized": "אינך מורשה לבצע פעולה זו.",
+        "notFound": "המשאב המבוקש לא נמצא.",
+        "validation": "אנא בדוק את הקלט שלך ונסה שוב."
+    }
+}

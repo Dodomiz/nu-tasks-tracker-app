@@ -1,8 +1,12 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useRTL } from '@/hooks/useRTL';
 import { useResetPasswordMutation } from '../authApi';
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation();
+  const { isRTL } = useRTL();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const navigate = useNavigate();
@@ -18,17 +22,17 @@ export default function ResetPasswordPage() {
     setError('');
 
     if (!token) {
-      setError('Invalid reset link. Please request a new password reset.');
+      setError(t('auth.resetPassword.invalidToken'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.resetPassword.passwordMismatch'));
       return;
     }
 
     if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('auth.register.passwordTooShort'));
       return;
     }
 
@@ -36,10 +40,10 @@ export default function ResetPasswordPage() {
       await resetPassword({ token, newPassword }).unwrap();
       // Show success and redirect to login
       navigate('/login', {
-        state: { message: 'Password reset successful. Please log in with your new password.' },
+        state: { message: t('auth.resetPassword.success') },
       });
     } catch (err: any) {
-      setError(err?.data?.message || 'Failed to reset password. The link may be invalid or expired.');
+      setError(err?.data?.message || t('auth.resetPassword.failed'));
     }
   };
 
@@ -48,11 +52,11 @@ export default function ResetPasswordPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Invalid Reset Link
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 rtl:text-right">
+              {t('auth.resetPassword.invalidToken')}
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              This password reset link is invalid. Please request a new one.
+            <p className="mt-2 text-center text-sm text-gray-600 rtl:text-right">
+              {t('auth.forgotPassword.description')}
             </p>
           </div>
           <div className="text-center">
@@ -60,7 +64,7 @@ export default function ResetPasswordPage() {
               to="/forgot-password"
               className="font-medium text-primary-600 hover:text-primary-500"
             >
-              Request new reset link
+              {t('auth.forgotPassword.submit')}
             </Link>
           </div>
         </div>
@@ -69,14 +73,14 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className={`min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 ${isRTL ? 'rtl' : ''}`}>
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Set new password
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 rtl:text-right">
+            {t('auth.resetPassword.title')}
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Enter your new password below.
+          <p className="mt-2 text-center text-sm text-gray-600 rtl:text-right">
+            {t('auth.forgotPassword.description')}
           </p>
         </div>
 
@@ -90,7 +94,7 @@ export default function ResetPasswordPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="newPassword" className="sr-only">
-                New password
+                {t('auth.resetPassword.password')}
               </label>
               <input
                 id="newPassword"
@@ -99,14 +103,14 @@ export default function ResetPasswordPage() {
                 autoComplete="new-password"
                 required
                 className="input"
-                placeholder="New password (min 8 characters)"
+                placeholder={t('auth.resetPassword.password')}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
               />
             </div>
             <div>
               <label htmlFor="confirmPassword" className="sr-only">
-                Confirm password
+                {t('auth.resetPassword.confirmPassword')}
               </label>
               <input
                 id="confirmPassword"
@@ -115,7 +119,7 @@ export default function ResetPasswordPage() {
                 autoComplete="new-password"
                 required
                 className="input"
-                placeholder="Confirm new password"
+                placeholder={t('auth.resetPassword.confirmPassword')}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
@@ -128,7 +132,7 @@ export default function ResetPasswordPage() {
               disabled={isLoading}
               className="btn btn-primary w-full"
             >
-              {isLoading ? 'Resetting password...' : 'Reset password'}
+              {isLoading ? t('auth.resetPassword.submitting') : t('auth.resetPassword.submit')}
             </button>
           </div>
 
@@ -137,7 +141,7 @@ export default function ResetPasswordPage() {
               to="/login"
               className="text-sm font-medium text-primary-600 hover:text-primary-500"
             >
-              Back to login
+              {t('auth.forgotPassword.backToLogin')}
             </Link>
           </div>
         </form>

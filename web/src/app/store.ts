@@ -13,6 +13,8 @@ import {
 import storage from 'redux-persist/lib/storage';
 import { apiSlice } from './api/apiSlice';
 import authReducer from '@/features/auth/authSlice';
+import languageReducer from './slices/languageSlice';
+import groupReducer from '@/features/groups/groupSlice';
 
 // Configure persist for auth slice
 const authPersistConfig = {
@@ -21,12 +23,30 @@ const authPersistConfig = {
   whitelist: ['user', 'accessToken', 'refreshToken', 'isAuthenticated'],
 };
 
+// Configure persist for language slice
+const languagePersistConfig = {
+  key: 'language',
+  storage,
+  whitelist: ['current', 'direction'],
+};
+
+// Configure persist for group slice
+const groupPersistConfig = {
+  key: 'group',
+  storage,
+  whitelist: ['currentGroupId', 'groups'],
+};
+
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
+const persistedLanguageReducer = persistReducer(languagePersistConfig, languageReducer);
+const persistedGroupReducer = persistReducer(groupPersistConfig, groupReducer);
 
 export const store = configureStore({
   reducer: {
     [apiSlice.reducerPath]: apiSlice.reducer,
     auth: persistedAuthReducer,
+    language: persistedLanguageReducer,
+    group: persistedGroupReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

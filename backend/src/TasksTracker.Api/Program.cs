@@ -40,9 +40,12 @@ builder.Services.AddSingleton<MongoDbContext>();
 
 // Register Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IGroupRepository, GroupRepository>();
 
 // Register Services
 builder.Services.AddScoped<TasksTracker.Api.Features.Auth.Services.IAuthService, TasksTracker.Api.Features.Auth.Services.AuthService>();
+builder.Services.AddScoped<TasksTracker.Api.Features.Groups.Services.IGroupService, TasksTracker.Api.Features.Groups.Services.GroupService>();
+builder.Services.AddScoped<TasksTracker.Api.Features.Groups.Services.IInvitationService, TasksTracker.Api.Features.Groups.Services.InvitationService>();
 
 // Add JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -150,3 +153,5 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+public partial class Program { }

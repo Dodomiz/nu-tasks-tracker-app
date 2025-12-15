@@ -1,15 +1,19 @@
 import { useState, FormEvent, ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { updateUser } from '../authSlice';
 
 export default function ProfilePage() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const user = useAppSelector((state) => state.auth.user);
   const dispatch = useAppDispatch();
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
-  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState(user?.profileImageUrl || '');
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -23,13 +27,13 @@ export default function ProfilePage() {
 
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      setError('Image must be less than 5MB');
+      setError(t('errors.validation'));
       return;
     }
 
     // Validate file type
     if (!['image/jpeg', 'image/png'].includes(file.type)) {
-      setError('Image must be JPG or PNG');
+      setError(t('errors.validation'));
       return;
     }
 
@@ -58,10 +62,10 @@ export default function ProfilePage() {
       // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 500));
       
-      setSuccess('Profile updated successfully');
+      setSuccess(t('auth.profile.success'));
       setIsEditing(false);
     } catch (err: any) {
-      setError(err?.message || 'Failed to update profile');
+      setError(err?.message || t('auth.profile.failed'));
     } finally {
       setIsSaving(false);
     }
@@ -84,12 +88,23 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-4 flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back
+        </button>
+
         <div className="bg-white shadow rounded-lg">
           {/* Header */}
           <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Profile</h3>
+            <h3 className="text-lg leading-6 font-medium text-gray-900">{t('auth.profile.title')}</h3>
             <p className="mt-1 text-sm text-gray-500">
-              Manage your account information
+              {t('settings.profile')}
             </p>
           </div>
 
@@ -133,7 +148,7 @@ export default function ProfilePage() {
                         accept="image/jpeg,image/png"
                         onChange={handleImageChange}
                       />
-                      Change photo
+                      {t('common.edit')}
                     </label>
                     <p className="mt-2 text-xs text-gray-500">
                       JPG or PNG, max 5MB
@@ -145,7 +160,7 @@ export default function ProfilePage() {
               {/* First Name */}
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                  First name
+                  {t('auth.profile.firstName')}
                 </label>
                 <input
                   type="text"
@@ -161,7 +176,7 @@ export default function ProfilePage() {
               {/* Last Name */}
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                  Last name
+                  {t('auth.profile.lastName')}
                 </label>
                 <input
                   type="text"
@@ -177,7 +192,7 @@ export default function ProfilePage() {
               {/* Email (disabled) */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email address
+                  {t('auth.profile.email')}
                 </label>
                 <input
                   type="email"
@@ -187,7 +202,7 @@ export default function ProfilePage() {
                   disabled
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Email cannot be changed
+                  {t('auth.profile.email')}
                 </p>
               </div>
 
@@ -198,7 +213,7 @@ export default function ProfilePage() {
                   onClick={() => setShowChangePassword(true)}
                   className="text-sm font-medium text-primary-600 hover:text-primary-500"
                 >
-                  Change password
+                  {t('auth.profile.changePassword')}
                 </button>
 
                 <div className="flex space-x-3">
@@ -210,14 +225,14 @@ export default function ProfilePage() {
                         className="btn btn-secondary"
                         disabled={isSaving}
                       >
-                        Cancel
+                        {t('common.cancel')}
                       </button>
                       <button
                         type="submit"
                         className="btn btn-primary"
                         disabled={isSaving}
                       >
-                        {isSaving ? 'Saving...' : 'Save changes'}
+                        {isSaving ? t('auth.profile.saving') : t('auth.profile.save')}
                       </button>
                     </>
                   ) : (
@@ -226,7 +241,7 @@ export default function ProfilePage() {
                       onClick={() => setIsEditing(true)}
                       className="btn btn-primary"
                     >
-                      Edit profile
+                      {t('common.edit')}
                     </button>
                   )}
                 </div>
@@ -240,7 +255,7 @@ export default function ProfilePage() {
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Change Password
+                {t('auth.profile.changePassword')}
               </h3>
               <p className="text-sm text-gray-500 mb-4">
                 This feature will be available once the backend is implemented.
@@ -249,7 +264,7 @@ export default function ProfilePage() {
                 onClick={() => setShowChangePassword(false)}
                 className="btn btn-secondary w-full"
               >
-                Close
+                {t('common.close')}
               </button>
             </div>
           </div>

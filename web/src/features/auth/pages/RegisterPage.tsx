@@ -1,10 +1,15 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useRegisterMutation } from '../authApi';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { setCredentials } from '../authSlice';
+import { useRTL } from '@/hooks/useRTL';
+import LanguageSelector from '@/components/LanguageSelector';
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
+  const { isRTL } = useRTL();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -21,12 +26,12 @@ export default function RegisterPage() {
     setError('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.register.passwordMismatch'));
       return;
     }
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('auth.register.passwordTooShort'));
       return;
     }
 
@@ -41,27 +46,28 @@ export default function RegisterPage() {
       );
       navigate('/');
     } catch (err: any) {
-      setError(err?.data?.message || 'Registration failed. Please try again.');
+      setError(err?.data?.message || t('auth.register.failed'));
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className={`min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 ${isRTL ? 'rtl' : ''}`}>
       <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+        <div className={isRTL ? 'flex items-center justify-between flex-row-reverse' : 'flex items-center justify-between'}>
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 rtl:text-right">
+            {t('auth.register.title')}
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link
-              to="/login"
-              className="font-medium text-primary-600 hover:text-primary-500"
-            >
-              sign in to your account
-            </Link>
-          </p>
+          <LanguageSelector />
         </div>
+        <p className="mt-2 text-sm text-gray-600 rtl:text-right text-center">
+          {t('auth.register.hasAccount')}{' '}
+          <Link
+            to="/login"
+            className="font-medium text-primary-600 hover:text-primary-500"
+          >
+            {t('auth.register.signIn')}
+          </Link>
+        </p>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="rounded-md bg-red-50 p-4">
@@ -72,7 +78,7 @@ export default function RegisterPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="sr-only">
-                  First name
+                  {t('auth.register.firstName')}
                 </label>
                 <input
                   id="firstName"
@@ -80,14 +86,14 @@ export default function RegisterPage() {
                   type="text"
                   required
                   className="input"
-                  placeholder="First name"
+                  placeholder={t('auth.register.firstName')}
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                 />
               </div>
               <div>
                 <label htmlFor="lastName" className="sr-only">
-                  Last name
+                  {t('auth.register.lastName')}
                 </label>
                 <input
                   id="lastName"
@@ -95,7 +101,7 @@ export default function RegisterPage() {
                   type="text"
                   required
                   className="input"
-                  placeholder="Last name"
+                  placeholder={t('auth.register.lastName')}
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                 />
@@ -103,7 +109,7 @@ export default function RegisterPage() {
             </div>
             <div>
               <label htmlFor="email" className="sr-only">
-                Email address
+                {t('auth.register.email')}
               </label>
               <input
                 id="email"
@@ -112,14 +118,14 @@ export default function RegisterPage() {
                 autoComplete="email"
                 required
                 className="input"
-                placeholder="Email address"
+                placeholder={t('auth.register.email')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
               <label htmlFor="password" className="sr-only">
-                Password
+                {t('auth.register.password')}
               </label>
               <input
                 id="password"
@@ -128,14 +134,14 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 required
                 className="input"
-                placeholder="Password (min 8 characters)"
+                placeholder={t('auth.register.password')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <div>
               <label htmlFor="confirmPassword" className="sr-only">
-                Confirm password
+                {t('auth.register.confirmPassword')}
               </label>
               <input
                 id="confirmPassword"
@@ -144,7 +150,7 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 required
                 className="input"
-                placeholder="Confirm password"
+                placeholder={t('auth.register.confirmPassword')}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
@@ -157,7 +163,7 @@ export default function RegisterPage() {
               disabled={isLoading}
               className="btn btn-primary w-full"
             >
-              {isLoading ? 'Creating account...' : 'Create account'}
+              {isLoading ? t('auth.register.submitting') : t('auth.register.submit')}
             </button>
           </div>
         </form>

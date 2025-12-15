@@ -1,0 +1,104 @@
+{
+    "common": {
+        "appName": "NU Tasks Tracker",
+        "loading": "Loading...",
+        "error": "Error",
+        "success": "Success",
+        "save": "Save",
+        "cancel": "Cancel",
+        "close": "Close",
+        "delete": "Delete",
+        "confirm": "Confirm",
+        "edit": "Edit",
+        "create": "Create",
+        "update": "Update"
+    },
+    "auth": {
+        "login": {
+            "title": "Sign in to NU",
+            "email": "Email address",
+            "password": "Password",
+            "submit": "Sign in",
+            "submitting": "Signing in...",
+            "forgotPassword": "Forgot your password?",
+            "noAccount": "Or",
+            "createAccount": "create a new account",
+            "failed": "Login failed. Please try again."
+        },
+        "register": {
+            "title": "Create your account",
+            "firstName": "First name",
+            "lastName": "Last name",
+            "email": "Email address",
+            "password": "Password",
+            "confirmPassword": "Confirm password",
+            "submit": "Create account",
+            "submitting": "Creating account...",
+            "hasAccount": "Or",
+            "signIn": "sign in to your account",
+            "failed": "Registration failed. Please try again.",
+            "passwordMismatch": "Passwords do not match",
+            "passwordTooShort": "Password must be at least 8 characters"
+        },
+        "forgotPassword": {
+            "title": "Reset your password",
+            "description": "Enter your email address and we'll send you a link to reset your password.",
+            "email": "Email address",
+            "submit": "Send reset link",
+            "submitting": "Sending...",
+            "backToLogin": "Back to login",
+            "success": "Password reset link sent! Check your email.",
+            "failed": "Failed to send reset link. Please try again."
+        },
+        "resetPassword": {
+            "title": "Create new password",
+            "password": "New password",
+            "confirmPassword": "Confirm new password",
+            "submit": "Reset password",
+            "submitting": "Resetting...",
+            "success": "Password reset successful! You can now log in.",
+            "failed": "Failed to reset password. Please try again.",
+            "invalidToken": "Invalid or expired reset link.",
+            "passwordMismatch": "Passwords do not match"
+        },
+        "profile": {
+            "title": "Profile",
+            "firstName": "First name",
+            "lastName": "Last name",
+            "email": "Email address",
+            "save": "Save changes",
+            "saving": "Saving...",
+            "success": "Profile updated successfully",
+            "failed": "Failed to update profile",
+            "changePassword": "Change Password",
+            "currentPassword": "Current password",
+            "newPassword": "New password",
+            "confirmNewPassword": "Confirm new password"
+        },
+        "logout": "Logout"
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "welcome": "Welcome, {{name}}!",
+        "myTasks": "My Tasks",
+        "noTasks": "You don't have any tasks yet.",
+        "createTask": "Create your first task",
+        "tasks": "Tasks",
+        "completedTasks": "Completed Tasks",
+        "pendingTasks": "Pending Tasks"
+    },
+    "settings": {
+        "title": "Settings",
+        "language": "Language",
+        "profile": "Profile",
+        "preferences": "Preferences",
+        "notifications": "Notifications"
+    },
+    "errors": {
+        "generic": "Something went wrong. Please try again.",
+        "network": "Network error. Please check your connection.",
+        "unauthorized": "You are not authorized to perform this action.",
+        "notFound": "The requested resource was not found.",
+        "validation": "Please check your input and try again."
+    }
+}

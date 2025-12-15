@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend/src/TasksTracker.Api
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+    
+    - name: Test
+      run: dotnet test --no-build --configuration Release --verbosity normal
+      working-directory: ./backend/tests
+
+    - name: Coverage (unit tests)
+      run: |
+        dotnet test ../tests/TasksTracker.Api.Tests/TasksTracker.Api.Tests.csproj \
+          --no-build --configuration Release --collect:"XPlat Code Coverage"
+      working-directory: ./backend/src
+
+    - name: Coverage (integration tests)
+      run: |
+        dotnet test ../tests/TasksTracker.Api.IntegrationTests/TasksTracker.Api.IntegrationTests.csproj \
+          --no-build --configuration Release --collect:"XPlat Code Coverage"
+      working-directory: ./backend/src
+
+    - name: Upload backend coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-coverage
+        path: |
+          backend/tests/**/TestResults/**/*coverage.cobertura.xml
+          backend/tests/**/TestResults/**/coverage.cobertura.xml
+        if-no-files-found: warn
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: ./web/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Type check
+      run: npm run typecheck
+    
+    - name: Lint
+      run: npm run lint
+    
+    - name: Test
+      run: npm test -- --run
+
+    - name: Test with coverage
+      run: npm run test:coverage -- --run
+
+    - name: Upload frontend coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-coverage
+        path: web/coverage
+        if-no-files-found: warn
+    
+    - name: Build
+      run: npm run build
