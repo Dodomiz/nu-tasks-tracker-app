@@ -41,11 +41,13 @@ builder.Services.AddSingleton<MongoDbContext>();
 // Register Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IGroupRepository, GroupRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 // Register Services
 builder.Services.AddScoped<TasksTracker.Api.Features.Auth.Services.IAuthService, TasksTracker.Api.Features.Auth.Services.AuthService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Groups.Services.IGroupService, TasksTracker.Api.Features.Groups.Services.GroupService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Groups.Services.IInvitationService, TasksTracker.Api.Features.Groups.Services.InvitationService>();
+builder.Services.AddScoped<TasksTracker.Api.Features.Categories.Services.ICategoryService, TasksTracker.Api.Features.Categories.Services.CategoryService>();
 
 // Add JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

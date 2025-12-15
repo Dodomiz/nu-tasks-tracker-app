@@ -4,6 +4,31 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [
+    // Category colors - ensure dynamic classes are included
+    'bg-red-500',
+    'bg-orange-500',
+    'bg-amber-500',
+    'bg-yellow-500',
+    'bg-lime-500',
+    'bg-green-500',
+    'bg-green-600',
+    'bg-emerald-600',
+    'bg-teal-500',
+    'bg-cyan-500',
+    'bg-sky-500',
+    'bg-blue-500',
+    'bg-blue-600',
+    'bg-indigo-500',
+    'bg-violet-500',
+    'bg-purple-600',
+    'bg-fuchsia-500',
+    'bg-pink-600',
+    'bg-rose-500',
+    'bg-slate-500',
+    'bg-gray-700',
+    'bg-stone-500',
+  ],
   theme: {
     extend: {
       colors: {

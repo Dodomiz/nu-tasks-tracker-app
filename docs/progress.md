@@ -220,3 +220,28 @@
 - ✅ Comprehensive test coverage (formatters, Redux slice, translation validation)
 - ✅ GitHub Actions CI workflow for automated quality checks
 - ✅ Production-ready multilingual support (English LTR, Hebrew RTL)
+
+### Category Management Backend
+- ✅ Fixed build error in categories repository by adding missing Regex import
+  - Updated: [backend/src/TasksTracker.Api/Infrastructure/Repositories/CategoryRepository.cs](backend/src/TasksTracker.Api/Infrastructure/Repositories/CategoryRepository.cs)
+- ✅ Backend solution builds successfully; existing unrelated warnings remain in GroupsController
+- 🔜 Next: Confirm tasks collection includes `categoryId` field and integrate category selector into task forms
+
+### Epic E3: Testing & QA (Categories)
+- ✅ Backend unit tests for `CategoryService` added
+  - File: [backend/tests/TasksTracker.Api.Tests/Categories/CategoryServiceTests.cs](backend/tests/TasksTracker.Api.Tests/Categories/CategoryServiceTests.cs)
+- ✅ Backend integration tests for `CategoriesController` added (mocked `ICategoryService`)
+  - File: [backend/tests/TasksTracker.Api.IntegrationTests/Categories/CategoriesEndpointsTests.cs](backend/tests/TasksTracker.Api.IntegrationTests/Categories/CategoriesEndpointsTests.cs)
+  - Infra updated to inject mock: [CustomWebApplicationFactory](backend/tests/TasksTracker.Api.IntegrationTests/Infrastructure/CustomWebApplicationFactory.cs)
+- ✅ Frontend tests for `CategorySelector` component
+  - File: [web/src/features/categories/__tests__/CategorySelector.test.tsx](web/src/features/categories/__tests__/CategorySelector.test.tsx)
+  - Added `ResizeObserver` polyfill in [web/vitest.setup.ts](web/vitest.setup.ts)
+- ✅ All tests passing locally (backend unit + integration, frontend vitest)
+
+### Learning Session (do-learning.prompt.md)
+- ✅ Completed structured repository learning per do-learning.prompt.md
+- **Architecture:** Feature-based layered design (Controllers → Services → Repositories → MongoDB), RTK Query on frontend
+- **Docs vs Code:** Tasks feature documented but largely unimplemented in backend (`Features/Tasks/*` empty; no `Task` domain). No `categoryId` found in current backend code
+- **Implemented:** Categories feature (domain, repo, service, controller); Groups and Auth present; CI workflow for backend/frontend
+- **Frontend:** Category UI (selector, color/icon pickers, management page) implemented; routing and RTK Query configured
+- **Gaps for US-007:** Missing backend `tasks` schema and endpoints; frontend task forms not present to integrate `CategorySelector`

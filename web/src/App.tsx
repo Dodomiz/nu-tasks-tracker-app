@@ -10,6 +10,7 @@ import ForgotPasswordPage from './features/auth/pages/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/pages/ResetPasswordPage';
 import ProfilePage from './features/auth/pages/ProfilePage';
 import DashboardPage from './features/dashboard/pages/DashboardPage';
+import { CategoryManagementPage } from './features/categories';
 
 function App() {
   const { i18n } = useTranslation();
@@ -70,6 +71,10 @@ function App() {
       <Route
         path="/profile"
         element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/groups/:groupId/categories"
+        element={isAuthenticated ? <CategoryManagementPage /> : <Navigate to="/login" replace />}
       />
       
       {/* Catch all */}

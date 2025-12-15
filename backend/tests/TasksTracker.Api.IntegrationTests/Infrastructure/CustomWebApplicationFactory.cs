@@ -7,12 +7,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using TasksTracker.Api.Features.Groups.Models;
 using TasksTracker.Api.Features.Groups.Services;
+using TasksTracker.Api.Features.Categories.Services;
 
 namespace TasksTracker.Api.IntegrationTests.Infrastructure;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     public Mock<IGroupService> GroupServiceMock { get; } = new();
+    public Mock<ICategoryService> CategoryServiceMock { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -36,6 +38,14 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 services.Remove(descriptor);
             }
             services.AddSingleton(GroupServiceMock.Object);
+
+            // Swap ICategoryService with mock
+            var catDesc = services.SingleOrDefault(d => d.ServiceType == typeof(ICategoryService));
+            if (catDesc != null)
+            {
+                services.Remove(catDesc);
+            }
+            services.AddSingleton(CategoryServiceMock.Object);
         });
     }
 }
