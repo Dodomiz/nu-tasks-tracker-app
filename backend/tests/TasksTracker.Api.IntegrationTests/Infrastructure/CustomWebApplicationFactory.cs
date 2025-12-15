@@ -8,6 +8,7 @@ using Moq;
 using TasksTracker.Api.Features.Groups.Models;
 using TasksTracker.Api.Features.Groups.Services;
 using TasksTracker.Api.Features.Categories.Services;
+using TasksTracker.Api.Features.Templates.Services;
 
 namespace TasksTracker.Api.IntegrationTests.Infrastructure;
 
@@ -15,6 +16,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     public Mock<IGroupService> GroupServiceMock { get; } = new();
     public Mock<ICategoryService> CategoryServiceMock { get; } = new();
+    public Mock<ITemplateService> TemplateServiceMock { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -46,6 +48,14 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 services.Remove(catDesc);
             }
             services.AddSingleton(CategoryServiceMock.Object);
+
+                    // Swap ITemplateService with mock
+                    var templateDesc = services.SingleOrDefault(d => d.ServiceType == typeof(ITemplateService));
+                    if (templateDesc != null)
+                    {
+                        services.Remove(templateDesc);
+                    }
+                    services.AddSingleton(TemplateServiceMock.Object);
         });
     }
 }

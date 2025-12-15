@@ -70,7 +70,7 @@ public class GroupSettings
     public int MaxMembers { get; set; } = 20;
     
     [BsonElement("requireApproval")]
-    public bool RequireApproval { get; set; } = false;
+    public bool RequireApproval { get; set; }
 }
 
 public static class GroupRole

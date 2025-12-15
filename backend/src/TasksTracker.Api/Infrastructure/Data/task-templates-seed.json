@@ -1,0 +1,402 @@
+[
+    {
+        "name": "Morning Routine",
+        "description": "Complete your morning routine to start the day fresh",
+        "categoryName": "Personal Care",
+        "difficultyLevel": 2,
+        "estimatedDurationMinutes": 30,
+        "defaultFrequency": "Daily"
+    },
+    {
+        "name": "Exercise Workout",
+        "description": "Complete a full body workout session",
+        "categoryName": "Health & Fitness",
+        "difficultyLevel": 6,
+        "estimatedDurationMinutes": 45,
+        "defaultFrequency": "Daily"
+    },
+    {
+        "name": "Meditation Session",
+        "description": "Practice mindfulness meditation",
+        "categoryName": "Health & Fitness",
+        "difficultyLevel": 3,
+        "estimatedDurationMinutes": 15,
+        "defaultFrequency": "Daily"
+    },
+    {
+        "name": "Read for 30 Minutes",
+        "description": "Read a book or educational material",
+        "categoryName": "Learning",
+        "difficultyLevel": 2,
+        "estimatedDurationMinutes": 30,
+        "defaultFrequency": "Daily"
+    },
+    {
+        "name": "Grocery Shopping",
+        "description": "Buy groceries for the week",
+        "categoryName": "Household",
+        "difficultyLevel": 4,
+        "estimatedDurationMinutes": 60,
+        "defaultFrequency": "Weekly"
+    },
+    {
+        "name": "Clean Kitchen",
+        "description": "Deep clean kitchen including appliances",
+        "categoryName": "Household",
+        "difficultyLevel": 5,
+        "estimatedDurationMinutes": 45,
+        "defaultFrequency": "Weekly"
+    },
+    {
+        "name": "Laundry",
+        "description": "Wash, dry, and fold laundry",
+        "categoryName": "Household",
+        "difficultyLevel": 3,
+        "estimatedDurationMinutes": 90,
+        "defaultFrequency": "BiWeekly"
+    },
+    {
+        "name": "Pay Bills",
+        "description": "Review and pay monthly bills",
+        "categoryName": "Finance",
+        "difficultyLevel": 3,
+        "estimatedDurationMinutes": 30,
+        "defaultFrequency": "Monthly"
+    },
+    {
+        "name": "Budget Review",
+        "description": "Review monthly budget and expenses",
+        "categoryName": "Finance",
+        "difficultyLevel": 5,
+        "estimatedDurationMinutes": 45,
+        "defaultFrequency": "Monthly"
+    },
+    {
+        "name": "Vacuum House",
+        "description": "Vacuum all rooms and carpets",
+        "categoryName": "Household",
+        "difficultyLevel": 4,
+        "estimatedDurationMinutes": 30,
+        "defaultFrequency": "Weekly"
+    },
+    {
+        "name": "Water Plants",
+        "description": "Water all indoor and outdoor plants",
+        "categoryName": "Household",
+        "difficultyLevel": 1,
+        "estimatedDurationMinutes": 10,
+        "defaultFrequency": "BiWeekly"
+    },
+    {
+        "name": "Family Call",
+        "description": "Call family members to catch up",
+        "categoryName": "Social",
+        "difficultyLevel": 2,
+        "estimatedDurationMinutes": 30,
+        "defaultFrequency": "Weekly"
+    },
+    {
+        "name": "Date Night",
+        "description": "Plan and execute a date night",
+        "categoryName": "Social",
+        "difficultyLevel": 5,
+        "estimatedDurationMinutes": 180,
+        "defaultFrequency": "Weekly"
+    },
+    {
+        "name": "Organize Workspace",
+        "description": "Clean and organize your workspace",
+        "categoryName": "Work",
+        "difficultyLevel": 3,
+        "estimatedDurationMinutes": 30,
+        "defaultFrequency": "Weekly"
+    },
+    {
+        "name": "Email Inbox Zero",
+        "description": "Process all emails to inbox zero",
+        "categoryName": "Work",
+        "difficultyLevel": 6,
+        "estimatedDurationMinutes": 45,
+        "defaultFrequency": "Daily"
+    },
+    {
+        "name": "Weekly Planning",
+        "description": "Plan tasks and goals for the upcoming week",
+        "categoryName": "Work",
+        "difficultyLevel": 4,
+        "estimatedDurationMinutes": 30,
+        "defaultFrequency": "Weekly"
+    },
+    {
+        "name": "Dentist Appointment",
+        "description": "Schedule and attend dentist checkup",
+        "categoryName": "Health & Fitness",
+        "difficultyLevel": 4,
+        "estimatedDurationMinutes": 60,
+        "defaultFrequency": "BiWeekly"
+    },
+    {
+        "name": "Car Maintenance",
+        "description": "Perform routine car maintenance check",
+        "categoryName": "Household",
+        "difficultyLevel": 5,
+        "estimatedDurationMinutes": 120,
+        "defaultFrequency": "Quarterly"
+    },
+    {
+        "name": "Write in Journal",
+        "description": "Reflect and write in personal journal",
+        "categoryName": "Personal Care",
+        "difficultyLevel": 2,
+        "estimatedDurationMinutes": 15,
+        "defaultFrequency": "Daily"
+    },
+    {
+        "name": "Learn New Skill",
+        "description": "Dedicate time to learning a new skill",
+        "categoryName": "Learning",
+        "difficultyLevel": 7,
+        "estimatedDurationMinutes": 60,
+        "defaultFrequency": "Weekly"
+    },
+    {
+        "name": "Practice Instrument",
+        "description": "Practice playing musical instrument",
+        "categoryName": "Hobbies",
+        "difficultyLevel": 6,
+        "estimatedDurationMinutes": 45,
+        "defaultFrequency": "Daily"
+    },
+    {
+        "name": "Garden Work",
+        "description": "Tend to garden, weeding and planting",
+        "categoryName": "Household",
+        "difficultyLevel": 6,
+        "estimatedDurationMinutes": 90,
+        "defaultFrequency": "Weekly"
+    },
+    {
+        "name": "Backup Computer",
+        "description": "Backup important computer files",
+        "categoryName": "Work",
+        "difficultyLevel": 2,
+        "estimatedDurationMinutes": 20,
+        "defaultFrequency": "Weekly"
+    },
+    {
+        "name": "Update Resume",
+        "description": "Review and update professional resume",
+        "categoryName": "Work",
+        "difficultyLevel": 5,
+        "estimatedDurationMinutes": 60,
+        "defaultFrequency": "Quarterly"
+    },
+    {
+        "name": "Meal Prep Sunday",
+        "description": "Prepare meals for the week ahead",
+        "categoryName": "Household",
+        "difficultyLevel": 7,
+        "estimatedDurationMinutes": 180,
+        "defaultFrequency": "Weekly"
+    },
+    {
+        "name": "Take Vitamins",
+        "description": "Take daily vitamins and supplements",
+        "categoryName": "Health & Fitness",
+        "difficultyLevel": 1,
+        "estimatedDurationMinutes": 2,
+        "defaultFrequency": "Daily"
+    },
+    {
+        "name": "Stretch Routine",
+        "description": "Complete full body stretching routine",
+        "categoryName": "Health & Fitness",
+        "difficultyLevel": 3,
+        "estimatedDurationMinutes": 15,
+        "defaultFrequency": "Daily"
+    },
+    {
+        "name": "Social Media Detox Day",
+        "description": "Take a full day break from social media",
+        "categoryName": "Personal Care",
+        "difficultyLevel": 6,
+        "estimatedDurationMinutes": null,
+        "defaultFrequency": "Weekly"
+    },
+    {
+        "name": "Clean Bathroom",
+        "description": "Deep clean bathroom thoroughly",
+        "categoryName": "Household",
+        "difficultyLevel": 5,
+        "estimatedDurationMinutes": 45,
+        "defaultFrequency": "Weekly"
+    },
+    {
+        "name": "Change Bed Sheets",
+        "description": "Change and wash bed linens",
+        "categoryName": "Household",
+        "difficultyLevel": 2,
+        "estimatedDurationMinutes": 20,
+        "defaultFrequency": "BiWeekly"
+    },
+    {
+        "name": "Network Coffee Chat",
+        "description": "Schedule coffee chat with a professional contact",
+        "categoryName": "Work",
+        "difficultyLevel": 4,
+        "estimatedDurationMinutes": 60,
+        "defaultFrequency": "Monthly"
+    },
+    {
+        "name": "Review Investment Portfolio",
+        "description": "Review and rebalance investment portfolio",
+        "categoryName": "Finance",
+        "difficultyLevel": 7,
+        "estimatedDurationMinutes": 90,
+        "defaultFrequency": "Quarterly"
+    },
+    {
+        "name": "Declutter One Area",
+        "description": "Declutter and organize one area of home",
+        "categoryName": "Household",
+        "difficultyLevel": 5,
+        "estimatedDurationMinutes": 60,
+        "defaultFrequency": "Monthly"
+    },
+    {
+        "name": "Update Insurance Policies",
+        "description": "Review and update insurance coverage",
+        "categoryName": "Finance",
+        "difficultyLevel": 6,
+        "estimatedDurationMinutes": 120,
+        "defaultFrequency": "Yearly"
+    },
+    {
+        "name": "Volunteer Activity",
+        "description": "Participate in community volunteer activity",
+        "categoryName": "Social",
+        "difficultyLevel": 5,
+        "estimatedDurationMinutes": 120,
+        "defaultFrequency": "Monthly"
+    },
+    {
+        "name": "Digital Photo Backup",
+        "description": "Backup and organize digital photos",
+        "categoryName": "Personal Care",
+        "difficultyLevel": 4,
+        "estimatedDurationMinutes": 45,
+        "defaultFrequency": "Quarterly"
+    },
+    {
+        "name": "Deep Clean Refrigerator",
+        "description": "Remove all items and deep clean fridge",
+        "categoryName": "Household",
+        "difficultyLevel": 6,
+        "estimatedDurationMinutes": 60,
+        "defaultFrequency": "Quarterly"
+    },
+    {
+        "name": "Professional Development Course",
+        "description": "Complete a professional development course or module",
+        "categoryName": "Learning",
+        "difficultyLevel": 8,
+        "estimatedDurationMinutes": 120,
+        "defaultFrequency": "Monthly"
+    },
+    {
+        "name": "Check Smoke Detectors",
+        "description": "Test smoke detectors and replace batteries",
+        "categoryName": "Household",
+        "difficultyLevel": 2,
+        "estimatedDurationMinutes": 15,
+        "defaultFrequency": "Quarterly"
+    },
+    {
+        "name": "Doctor Annual Checkup",
+        "description": "Schedule and attend annual physical exam",
+        "categoryName": "Health & Fitness",
+        "difficultyLevel": 4,
+        "estimatedDurationMinutes": 60,
+        "defaultFrequency": "Yearly"
+    },
+    {
+        "name": "Rotate Tires",
+        "description": "Rotate car tires for even wear",
+        "categoryName": "Household",
+        "difficultyLevel": 5,
+        "estimatedDurationMinutes": 60,
+        "defaultFrequency": "BiWeekly"
+    },
+    {
+        "name": "Clean Windows",
+        "description": "Clean all windows inside and out",
+        "categoryName": "Household",
+        "difficultyLevel": 6,
+        "estimatedDurationMinutes": 90,
+        "defaultFrequency": "Quarterly"
+    },
+    {
+        "name": "Tax Preparation",
+        "description": "Gather documents and prepare tax returns",
+        "categoryName": "Finance",
+        "difficultyLevel": 9,
+        "estimatedDurationMinutes": 240,
+        "defaultFrequency": "Yearly"
+    },
+    {
+        "name": "Update Emergency Contacts",
+        "description": "Review and update emergency contact list",
+        "categoryName": "Personal Care",
+        "difficultyLevel": 2,
+        "estimatedDurationMinutes": 15,
+        "defaultFrequency": "Yearly"
+    },
+    {
+        "name": "Password Updates",
+        "description": "Update important account passwords",
+        "categoryName": "Personal Care",
+        "difficultyLevel": 4,
+        "estimatedDurationMinutes": 30,
+        "defaultFrequency": "Quarterly"
+    },
+    {
+        "name": "Attend Webinar",
+        "description": "Attend an industry webinar or virtual conference",
+        "categoryName": "Learning",
+        "difficultyLevel": 3,
+        "estimatedDurationMinutes": 90,
+        "defaultFrequency": "Monthly"
+    },
+    {
+        "name": "Pet Vet Visit",
+        "description": "Take pet for veterinary checkup",
+        "categoryName": "Personal Care",
+        "difficultyLevel": 5,
+        "estimatedDurationMinutes": 90,
+        "defaultFrequency": "Yearly"
+    },
+    {
+        "name": "Organize Closet",
+        "description": "Organize and donate unused clothes",
+        "categoryName": "Household",
+        "difficultyLevel": 6,
+        "estimatedDurationMinutes": 120,
+        "defaultFrequency": "Quarterly"
+    },
+    {
+        "name": "Practice Gratitude",
+        "description": "Write down things you're grateful for",
+        "categoryName": "Personal Care",
+        "difficultyLevel": 1,
+        "estimatedDurationMinutes": 10,
+        "defaultFrequency": "Daily"
+    },
+    {
+        "name": "Team Meeting Prep",
+        "description": "Prepare agenda and materials for team meeting",
+        "categoryName": "Work",
+        "difficultyLevel": 5,
+        "estimatedDurationMinutes": 45,
+        "defaultFrequency": "Weekly"
+    }
+]

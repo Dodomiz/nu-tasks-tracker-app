@@ -42,12 +42,17 @@ builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IGroupRepository, GroupRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 
 // Register Services
 builder.Services.AddScoped<TasksTracker.Api.Features.Auth.Services.IAuthService, TasksTracker.Api.Features.Auth.Services.AuthService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Groups.Services.IGroupService, TasksTracker.Api.Features.Groups.Services.GroupService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Groups.Services.IInvitationService, TasksTracker.Api.Features.Groups.Services.InvitationService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Categories.Services.ICategoryService, TasksTracker.Api.Features.Categories.Services.CategoryService>();
+builder.Services.AddScoped<TasksTracker.Api.Features.Templates.Services.ITemplateService, TasksTracker.Api.Features.Templates.Services.TemplateService>();
+builder.Services.AddScoped<TasksTracker.Api.Features.Tasks.Services.ITaskService, TasksTracker.Api.Features.Tasks.Services.TaskService>();
+builder.Services.AddScoped<TasksTracker.Api.Features.Workload.Services.IWorkloadService, TasksTracker.Api.Features.Workload.Services.WorkloadService>();
 
 // Add JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -105,6 +110,24 @@ if (!app.Environment.IsProduction())
         c.RoutePrefix = "swagger";
     });
 }
+// Seed system templates
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var templateRepository = scope.ServiceProvider.GetRequiredService<ITemplateRepository>();
+        var categoryRepository = scope.ServiceProvider.GetRequiredService<ICategoryRepository>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<TemplateSeeder>>();
+        
+        var seeder = new TemplateSeeder(templateRepository, categoryRepository, logger);
+        await seeder.SeedSystemTemplatesAsync();
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "An error occurred while seeding system templates");
+    }
+}
+
 
 // Use custom error handling middleware
 app.UseMiddleware<ErrorHandlingMiddleware>();

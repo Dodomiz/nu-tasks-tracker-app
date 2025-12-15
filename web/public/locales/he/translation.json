@@ -82,7 +82,9 @@
         "welcome": "שלום, {{name}}!",
         "myTasks": "המשימות שלי",
         "noTasks": "אין לך משימות עדיין.",
-        "createTask": "צור את המשימה הראשונה שלך",
+        "createTask": "צור ומשבץ משימה",
+        "taskCreated": "המשימה נוצרה בהצלחה",
+        "taskCreateError": "יצירת המשימה נכשלה",
         "tasks": "משימות",
         "completedTasks": "משימות שהושלמו",
         "pendingTasks": "משימות ממתינות"

@@ -11,6 +11,8 @@ import ResetPasswordPage from './features/auth/pages/ResetPasswordPage';
 import ProfilePage from './features/auth/pages/ProfilePage';
 import DashboardPage from './features/dashboard/pages/DashboardPage';
 import { CategoryManagementPage } from './features/categories';
+import { TemplateManagement } from './features/templates/pages/TemplateManagement';
+import Toaster from '@/components/Toaster';
 
 function App() {
   const { i18n } = useTranslation();
@@ -44,6 +46,7 @@ function App() {
   }, [dispatch, i18n]);
 
   return (
+    <>
     <Routes>
       {/* Public routes */}
       <Route
@@ -76,10 +79,16 @@ function App() {
         path="/groups/:groupId/categories"
         element={isAuthenticated ? <CategoryManagementPage /> : <Navigate to="/login" replace />}
       />
+      <Route
+        path="/groups/:groupId/templates"
+        element={isAuthenticated ? <TemplateManagement /> : <Navigate to="/login" replace />}
+      />
       
       {/* Catch all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+      <Toaster />
+    </>
   );
 }
 

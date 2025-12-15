@@ -18,6 +18,16 @@
 **Next:**
 - Trace end-to-end auth flow in code and finalize service implementations.
 - Begin applying locale-aware formatting and RTL polish in web UI.# Progress
+### Frontend UI Fixes (2025-12-15)
+- Updated task creation form styling to use Tailwind component classes for consistent colors
+  - File: `/web/src/features/tasks/components/CreateTaskForm.tsx`
+  - Switched inputs to `.input` and button to `.btn .btn-primary`
+- Made the form visible even when no group is selected
+  - Always render form in dashboard modal and show a helpful notice if group is missing
+  - File: `/web/src/features/dashboard/pages/DashboardPage.tsx`
+  - Form disables submit until a group is selected to prevent invalid requests
+- Result: Create & Assign UI uses primary palette and renders reliably in the modal
+
 
 ## 2025-12-14
 

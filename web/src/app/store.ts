@@ -12,9 +12,11 @@ import {
 } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { apiSlice } from './api/apiSlice';
+import { tasksApi } from '@/features/tasks/api/tasksApi';
 import authReducer from '@/features/auth/authSlice';
 import languageReducer from './slices/languageSlice';
 import groupReducer from '@/features/groups/groupSlice';
+import notificationsReducer from './slices/notificationsSlice';
 
 // Configure persist for auth slice
 const authPersistConfig = {
@@ -44,16 +46,18 @@ const persistedGroupReducer = persistReducer(groupPersistConfig, groupReducer);
 export const store = configureStore({
   reducer: {
     [apiSlice.reducerPath]: apiSlice.reducer,
+    [tasksApi.reducerPath]: tasksApi.reducer,
     auth: persistedAuthReducer,
     language: persistedLanguageReducer,
     group: persistedGroupReducer,
+    notifications: notificationsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat(apiSlice.middleware),
+    }).concat(apiSlice.middleware, tasksApi.middleware),
 });
 
 export const persistor = persistStore(store);

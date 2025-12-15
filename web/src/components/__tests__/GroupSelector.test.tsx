@@ -11,7 +11,7 @@ vi.mock('@/features/groups/groupApi', () => ({
 
 function setupTestStore(preloaded?: any) {
   const store = configureStore({
-    reducer: { group: groupReducer },
+    reducer: { group: groupReducer } as any,
     preloadedState: preloaded,
   });
   return store;

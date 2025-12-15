@@ -7,6 +7,10 @@ import { useNavigate } from 'react-router-dom';
 import LanguageSelector from '@/components/LanguageSelector';
 import { useRTL } from '@/hooks/useRTL';
 import { formatDate, formatRelative } from '@/utils/dateFormatter';
+import { useState } from 'react';
+import CreateTaskForm from '@/components/CreateTaskForm';
+import Modal from '@/components/Modal';
+import { addToast } from '@/app/slices/notificationsSlice';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
@@ -16,6 +20,7 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const [logoutMutation] = useLogoutMutation();
   const currentLang = useAppSelector((state) => state.language.current);
+  const currentGroupId = useAppSelector((state) => state.group.currentGroupId);
 
   const handleLogout = async () => {
     try {
@@ -28,6 +33,8 @@ export default function DashboardPage() {
       navigate('/login');
     }
   };
+
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
 
   return (
     <div className={`min-h-screen bg-gray-50 ${isRTL ? 'rtl' : ''}`}>
@@ -74,6 +81,12 @@ export default function DashboardPage() {
               >
                 {t('dashboard.createGroup', { defaultValue: 'Create Group' })}
               </button>
+                <button
+                  onClick={() => setTaskModalOpen(true)}
+                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+                >
+                  {t('dashboard.createTask', { defaultValue: 'Create & Assign Task' })}
+                </button>
             </div>
 
             <div className="mt-6 text-sm text-gray-500 rtl:text-right">
@@ -84,6 +97,18 @@ export default function DashboardPage() {
                 {t('common.lastUpdated')}: {formatRelative(new Date(), new Date(), currentLang)}
               </p>
             </div>
+            <Modal open={taskModalOpen} onClose={() => setTaskModalOpen(false)} title={t('dashboard.createTask', { defaultValue: 'Create & Assign Task' })}>
+              <CreateTaskForm
+                defaultGroupId={currentGroupId || undefined}
+                onSuccess={() => {
+                  setTaskModalOpen(false);
+                  dispatch(addToast({ id: Date.now().toString(), message: t('dashboard.taskCreated', { defaultValue: 'Task created successfully' }), type: 'success' }));
+                }}
+                onError={(msg?: string) => {
+                  dispatch(addToast({ id: Date.now().toString(), message: msg || t('dashboard.taskCreateError', { defaultValue: 'Failed to create task' }), type: 'error' }));
+                }}
+              />
+            </Modal>
           </div>
         </div>
       </main>

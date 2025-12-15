@@ -40,7 +40,9 @@ function setup() {
 }
 
 describe('CreateGroupPage', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('validates minimum name length', async () => {
     setup();
