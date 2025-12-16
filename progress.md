@@ -38,6 +38,11 @@
     - FR-016: [docs/FR-016/workplan.md](docs/FR-016/workplan.md)
 	    - FR-017: [docs/FR-017/workplan.md](docs/FR-017/workplan.md)
         - FR-018: [docs/FR-018/workplan.md](docs/FR-018/workplan.md)
+        - FR-019: [docs/FR-019/workplan.md](docs/FR-019/workplan.md)
+        - FR-020: [docs/FR-020/workplan.md](docs/FR-020/workplan.md)
+        - FR-021: [docs/FR-021/workplan.md](docs/FR-021/workplan.md)
+        - FR-022: [docs/FR-022/workplan.md](docs/FR-022/workplan.md)
+        - FR-023: [docs/FR-023/workplan.md](docs/FR-023/workplan.md)
  Registered repository/service in DI and verified build passes.
 
 

@@ -9,4 +9,5 @@ public interface IUserRepository : IRepository<User>
     Task<User?> GetByEmailVerificationTokenAsync(string token);
     Task<User?> GetByPasswordResetTokenAsync(string token);
     Task<bool> EmailExistsAsync(string email);
+    Task<List<User>> GetByIdsAsync(List<string> userIds, CancellationToken cancellationToken = default);
 }

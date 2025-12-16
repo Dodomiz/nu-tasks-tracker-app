@@ -16,7 +16,7 @@ public class TaskRepository(IMongoDatabase database) : ITaskRepository
 
     public async Task<(List<TaskItem> items, long total)> FindAsync(
         string? groupId,
-        TaskStatus? status,
+        Core.Domain.TaskStatus? status,
         string? assignedTo,
         string? categoryId,
         int page,
@@ -47,5 +47,15 @@ public class TaskRepository(IMongoDatabase database) : ITaskRepository
             .ToListAsync(ct);
 
         return (items, total);
+    }
+
+    public async Task<TaskItem?> GetByIdAsync(string id, CancellationToken ct = default)
+    {
+        return await _collection.Find(x => x.Id == id).FirstOrDefaultAsync(ct);
+    }
+
+    public async Task UpdateAsync(TaskItem task, CancellationToken ct = default)
+    {
+        await _collection.ReplaceOneAsync(x => x.Id == task.Id, task, cancellationToken: ct);
     }
 }

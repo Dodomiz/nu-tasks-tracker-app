@@ -13,6 +13,8 @@ import DashboardPage from './features/dashboard/pages/DashboardPage';
 import { CategoryManagementPage } from './features/categories';
 import { TemplateManagement } from './features/templates/pages/TemplateManagement';
 import Toaster from '@/components/Toaster';
+import DistributionWizardPage from './features/distribution/pages/DistributionWizardPage';
+import DistributionPreviewPage from './features/distribution/pages/DistributionPreviewPage';
 
 function App() {
   const { i18n } = useTranslation();
@@ -82,6 +84,14 @@ function App() {
       <Route
         path="/groups/:groupId/templates"
         element={isAuthenticated ? <TemplateManagement /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/groups/:groupId/distribution"
+        element={isAuthenticated ? <DistributionWizardPage /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/distribution/preview/:id"
+        element={isAuthenticated ? <DistributionPreviewPage /> : <Navigate to="/login" replace />}
       />
       
       {/* Catch all */}

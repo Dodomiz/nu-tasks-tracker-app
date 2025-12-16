@@ -12,7 +12,7 @@ public class WorkloadService(ITaskRepository taskRepository, IGroupRepository gr
         var members = await groupRepository.GetMembersAsync(groupId, ct);
         var memberIds = members.Select(m => m.UserId).ToHashSet();
         var (tasks, _) = await taskRepository.FindAsync(groupId, null, null, null, 1, 1000, ct);
-        var filtered = tasks.Where(t => t.Status is TaskStatus.Pending or TaskStatus.InProgress);
+        var filtered = tasks.Where(t => t.Status is Core.Domain.TaskStatus.Pending or Core.Domain.TaskStatus.InProgress);
 
         filtered = range switch
         {
@@ -35,7 +35,7 @@ public class WorkloadService(ITaskRepository taskRepository, IGroupRepository gr
 
         var totalDifficulty = dict.Values.Sum(v => v.total);
         var totalTasks = dict.Values.Sum(v => v.count);
-        var avg = memberIds.Count == 0 ? 0 : (double)totalDifficulty / memberIds.Count;
+        var avg = memberIds.Count() == 0 ? 0 : (double)totalDifficulty / memberIds.Count();
         var min = dict.Values.Select(v => v.total).DefaultIfEmpty(0).Min();
         var max = dict.Values.Select(v => v.total).DefaultIfEmpty(0).Max();
         var variancePercent = avg == 0 ? 0 : ((max - avg) / avg) * 100.0;
@@ -43,7 +43,7 @@ public class WorkloadService(ITaskRepository taskRepository, IGroupRepository gr
 
         var users = new List<UserWorkload>();
         var userInfos = await userRepository.GetByIdsAsync(memberIds.ToList(), ct);
-        var nameById = userInfos.ToDictionary(u => u.Id, u => u.DisplayName ?? "");
+        var nameById = userInfos.ToDictionary(u => u.Id, u => $"{u.FirstName} {u.LastName}".Trim());
 
         foreach (var kv in dict)
         {

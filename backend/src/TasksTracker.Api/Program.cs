@@ -44,6 +44,7 @@ builder.Services.AddScoped<IGroupRepository, GroupRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<IDistributionRepository, DistributionRepository>();
 
 // Register Services
 builder.Services.AddScoped<TasksTracker.Api.Features.Auth.Services.IAuthService, TasksTracker.Api.Features.Auth.Services.AuthService>();
@@ -53,6 +54,15 @@ builder.Services.AddScoped<TasksTracker.Api.Features.Categories.Services.ICatego
 builder.Services.AddScoped<TasksTracker.Api.Features.Templates.Services.ITemplateService, TasksTracker.Api.Features.Templates.Services.TemplateService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Tasks.Services.ITaskService, TasksTracker.Api.Features.Tasks.Services.TaskService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Workload.Services.IWorkloadService, TasksTracker.Api.Features.Workload.Services.WorkloadService>();
+builder.Services.AddScoped<TasksTracker.Api.Features.Distribution.Services.IDistributionService, TasksTracker.Api.Features.Distribution.Services.DistributionService>();
+builder.Services.AddScoped<TasksTracker.Api.Features.Distribution.Services.AIDistributionEngine>();
+builder.Services.AddScoped<TasksTracker.Api.Features.Distribution.Services.RuleBasedDistributor>();
+
+// Register HttpClient for OpenAI
+builder.Services.AddHttpClient("OpenAI");
+
+// Register OpenAI ServerAccess
+builder.Services.AddScoped<TasksTracker.Api.Infrastructure.ServerAccess.OpenAI.IOpenAIServerAccess, TasksTracker.Api.Infrastructure.ServerAccess.OpenAI.OpenAIServerAccess>();
 
 // Add JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

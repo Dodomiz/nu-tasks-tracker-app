@@ -37,4 +37,10 @@ public class UserRepository(MongoDbContext context) : BaseRepository<User>(conte
         var count = await _collection.CountDocumentsAsync(filter);
         return count > 0;
     }
+
+    public async Task<List<User>> GetByIdsAsync(List<string> userIds, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<User>.Filter.In(u => u.Id, userIds);
+        return await _collection.Find(filter).ToListAsync(cancellationToken);
+    }
 }

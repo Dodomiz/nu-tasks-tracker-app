@@ -56,7 +56,7 @@ public class TaskService(ITaskRepository taskRepository) : ITaskService
             Difficulty = t.Difficulty,
             Status = t.Status,
             DueAt = t.DueAt,
-            IsOverdue = t.Status != TaskStatus.Completed && t.DueAt < nowUtc
+            IsOverdue = t.Status != Core.Domain.TaskStatus.Completed && t.DueAt < nowUtc
         }).ToList();
 
         return new PagedResult<TaskResponse>

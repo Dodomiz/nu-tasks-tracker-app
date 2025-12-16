@@ -11,7 +11,7 @@ public class TaskResponse
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public int Difficulty { get; set; }
-    public TaskStatus Status { get; set; }
+    public Core.Domain.TaskStatus Status { get; set; }
     public DateTime DueAt { get; set; }
     public bool IsOverdue { get; set; }
 }

@@ -22,6 +22,13 @@ public class GroupRepository(MongoDbContext context) : BaseRepository<Group>(con
         return await _collection.Find(filter).ToListAsync();
     }
 
+    public async Task<List<GroupMember>> GetMembersAsync(string groupId, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<Group>.Filter.Eq(g => g.Id, groupId);
+        var group = await _collection.Find(filter).FirstOrDefaultAsync(cancellationToken);
+        return group?.Members ?? new List<GroupMember>();
+    }
+
     public async Task<Group> UpdateAsync(Group group)
     {
         group.UpdatedAt = DateTime.UtcNow;
