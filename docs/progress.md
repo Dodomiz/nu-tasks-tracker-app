@@ -255,3 +255,13 @@
 - **Implemented:** Categories feature (domain, repo, service, controller); Groups and Auth present; CI workflow for backend/frontend
 - **Frontend:** Category UI (selector, color/icon pickers, management page) implemented; routing and RTK Query configured
 - **Gaps for US-007:** Missing backend `tasks` schema and endpoints; frontend task forms not present to integrate `CategorySelector`
+
+## 2025-12-16
+
+### Added workplans
+- [FR-019: Accessibility & Internationalization](FR-019/workplan.md)
+- [FR-020: Data Privacy & Account Controls](FR-020/workplan.md)
+- [FR-021: Admin Panel & Governance](FR-021/workplan.md)
+- [FR-022: Integrations & Webhooks](FR-022/workplan.md)
+- [FR-023: Mobile App Alignment](FR-023/workplan.md)
+- [FR-002: Group Management](FR-002/workplan.md) - Updated with implementation status markers (✅/🔶/❌) - 61% already implemented

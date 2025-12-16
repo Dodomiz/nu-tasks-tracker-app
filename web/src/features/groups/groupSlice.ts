@@ -10,8 +10,32 @@ interface GroupState {
   error: string | null;
 }
 
+// Load persisted group ID from localStorage
+const loadPersistedGroupId = (): string | null => {
+  try {
+    const persistedId = localStorage.getItem('currentGroupId');
+    return persistedId || null;
+  } catch (error) {
+    console.error('Failed to load persisted group ID:', error);
+    return null;
+  }
+};
+
+// Save group ID to localStorage
+const persistGroupId = (groupId: string | null): void => {
+  try {
+    if (groupId) {
+      localStorage.setItem('currentGroupId', groupId);
+    } else {
+      localStorage.removeItem('currentGroupId');
+    }
+  } catch (error) {
+    console.error('Failed to persist group ID:', error);
+  }
+};
+
 const initialState: GroupState = {
-  currentGroupId: null,
+  currentGroupId: loadPersistedGroupId(),
   groups: [],
   currentGroup: null,
   loading: false,
@@ -24,10 +48,26 @@ const groupSlice = createSlice({
   reducers: {
     setCurrentGroup: (state, action: PayloadAction<string | null>) => {
       state.currentGroupId = action.payload;
+      persistGroupId(action.payload);
       if (action.payload) {
         state.currentGroup = state.groups.find(g => g.id === action.payload) || null;
       } else {
         state.currentGroup = null;
+      }
+    },
+    hydrateGroups: (state, action: PayloadAction<Group[]>) => {
+      state.groups = action.payload;
+      // Restore current group from persisted ID if it exists in the groups list
+      if (state.currentGroupId) {
+        const foundGroup = action.payload.find(g => g.id === state.currentGroupId);
+        if (foundGroup) {
+          state.currentGroup = foundGroup;
+        } else {
+          // Persisted group no longer exists, clear it
+          state.currentGroupId = null;
+          state.currentGroup = null;
+          persistGroupId(null);
+        }
       }
     },
     setGroups: (state, action: PayloadAction<Group[]>) => {
@@ -84,6 +124,7 @@ export const {
   setLoading,
   setError,
   clearError,
+hydrateGroups,
 } = groupSlice.actions;
 
 // Selectors

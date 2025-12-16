@@ -15,6 +15,9 @@ import { TemplateManagement } from './features/templates/pages/TemplateManagemen
 import Toaster from '@/components/Toaster';
 import DistributionWizardPage from './features/distribution/pages/DistributionWizardPage';
 import DistributionPreviewPage from './features/distribution/pages/DistributionPreviewPage';
+import CreateGroupPage from './features/groups/pages/CreateGroupPage';
+import GroupDashboardPage from './features/groups/pages/GroupDashboardPage';
+import JoinGroupPage from './features/groups/pages/JoinGroupPage';
 
 function App() {
   const { i18n } = useTranslation();
@@ -77,6 +80,21 @@ function App() {
         path="/profile"
         element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" replace />}
       />
+      
+      {/* Group routes */}
+      <Route
+        path="/groups/create"
+        element={isAuthenticated ? <CreateGroupPage /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/groups/:groupId/dashboard"
+        element={isAuthenticated ? <GroupDashboardPage /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/groups/join/:invitationCode"
+        element={isAuthenticated ? <JoinGroupPage /> : <Navigate to="/login" replace />}
+      />
+      
       <Route
         path="/groups/:groupId/categories"
         element={isAuthenticated ? <CategoryManagementPage /> : <Navigate to="/login" replace />}

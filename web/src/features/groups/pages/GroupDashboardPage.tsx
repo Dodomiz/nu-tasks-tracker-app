@@ -1,22 +1,86 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useGetGroupQuery } from '@/features/groups/groupApi';
+import { useGetGroupQuery, usePromoteMemberMutation, useRemoveMemberMutation } from '@/features/groups/groupApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { selectIsAdmin } from '@/features/groups/groupSlice';
+import { selectCurrentUser } from '@/features/auth/authSlice';
 import { formatDate } from '@/utils/dateFormatter';
 import { useState } from 'react';
 import InviteMembersModal from '../components/InviteMembersModal';
+import ConfirmationModal from '@/components/ConfirmationModal';
+import { toast } from 'react-hot-toast';
+
+interface ConfirmAction {
+  type: 'promote' | 'remove';
+  userId: string;
+  memberName: string;
+}
 
 export default function GroupDashboardPage() {
   const { groupId } = useParams<{ groupId: string }>();
   const { i18n } = useTranslation();
   const navigate = useNavigate();
   const isAdmin = useAppSelector(selectIsAdmin);
+  const currentUser = useAppSelector(selectCurrentUser);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
 
   const { data: group, isLoading, error } = useGetGroupQuery(groupId!, {
     skip: !groupId,
   });
+
+  const [promoteMember, { isLoading: isPromoting }] = usePromoteMemberMutation();
+  const [removeMember, { isLoading: isRemoving }] = useRemoveMemberMutation();
+
+  const handlePromoteMember = async () => {
+    if (!confirmAction || !groupId) return;
+
+    try {
+      await promoteMember({
+        groupId,
+        userId: confirmAction.userId,
+      }).unwrap();
+      
+      toast.success(`${confirmAction.memberName} promoted to admin successfully`);
+      setConfirmAction(null);
+    } catch (err: any) {
+      const errorMessage = err?.data?.message || 'Failed to promote member';
+      toast.error(errorMessage);
+      setConfirmAction(null);
+    }
+  };
+
+  const handleRemoveMember = async () => {
+    if (!confirmAction || !groupId) return;
+
+    try {
+      await removeMember({
+        groupId,
+        userId: confirmAction.userId,
+      }).unwrap();
+      
+      toast.success(`${confirmAction.memberName} removed from group`);
+      setConfirmAction(null);
+    } catch (err: any) {
+      const errorMessage = err?.data?.message || 'Failed to remove member';
+      toast.error(errorMessage);
+      setConfirmAction(null);
+    }
+  };
+
+  const canRemoveMember = (member: any) => {
+    if (!group) return false;
+    
+    // Cannot remove yourself if you're the last admin
+    const isCurrentUser = member.userId === currentUser?.id;
+    const adminCount = group.members?.filter(m => m.role === 'Admin').length || 0;
+    
+    if (isCurrentUser && adminCount === 1) {
+      return false;
+    }
+    
+    return true;
+  };
 
   if (isLoading) {
     return (
@@ -172,13 +236,41 @@ export default function GroupDashboardPage() {
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex justify-end gap-2">
                               {member.role !== 'Admin' && (
-                                <button className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
+                                <button
+                                  onClick={() =>
+                                    setConfirmAction({
+                                      type: 'promote',
+                                      userId: member.userId,
+                                      memberName: `${member.firstName} ${member.lastName}`,
+                                    })
+                                  }
+                                  className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                                >
                                   Promote
                                 </button>
                               )}
-                              <button className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                                Remove
-                              </button>
+                              {canRemoveMember(member) ? (
+                                <button
+                                  onClick={() =>
+                                    setConfirmAction({
+                                      type: 'remove',
+                                      userId: member.userId,
+                                      memberName: `${member.firstName} ${member.lastName}`,
+                                    })
+                                  }
+                                  className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 font-medium"
+                                >
+                                  Remove
+                                </button>
+                              ) : (
+                                <button
+                                  disabled
+                                  title="Cannot remove yourself as the last admin"
+                                  className="text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                                >
+                                  Remove
+                                </button>
+                              )}
                             </div>
                           </td>
                         )}
@@ -214,6 +306,28 @@ export default function GroupDashboardPage() {
                 <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   Language
                 </dt>
+
+      {/* Confirmation Modal */}
+      {confirmAction && (
+        <ConfirmationModal
+          isOpen={true}
+          title={confirmAction.type === 'promote' ? 'Promote Member' : 'Remove Member'}
+          message={
+            confirmAction.type === 'promote'
+              ? `Are you sure you want to promote ${confirmAction.memberName} to admin? They will be able to manage members and group settings.`
+              : `Are you sure you want to remove ${confirmAction.memberName} from this group? They will lose access to all group data.`
+          }
+          confirmText={confirmAction.type === 'promote' ? 'Promote' : 'Remove'}
+          confirmButtonClass={
+            confirmAction.type === 'promote'
+              ? 'bg-blue-600 hover:bg-blue-700'
+              : 'bg-red-600 hover:bg-red-700'
+          }
+          onConfirm={confirmAction.type === 'promote' ? handlePromoteMember : handleRemoveMember}
+          onCancel={() => setConfirmAction(null)}
+          isLoading={isPromoting || isRemoving}
+        />
+      )}
                 <dd className="mt-1 text-sm text-gray-900 dark:text-white">
                   {group.language === 'en' ? '🇺🇸 English' : '🇮🇱 עברית'}
                 </dd>

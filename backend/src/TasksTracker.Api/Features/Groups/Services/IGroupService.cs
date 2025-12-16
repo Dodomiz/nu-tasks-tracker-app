@@ -10,4 +10,7 @@ public interface IGroupService
     Task<GroupsResponse> GetUserGroupsAsync(string userId, int page = 1, int pageSize = 50);
     Task<GroupResponse> UpdateGroupAsync(string groupId, UpdateGroupRequest request, string userId);
     Task DeleteGroupAsync(string groupId, string userId);
+    Task<GroupResponse> JoinGroupByInvitationAsync(string invitationCode, string userId);
+    Task PromoteMemberAsync(string groupId, string targetUserId, string requestingUserId);
+    Task RemoveMemberAsync(string groupId, string targetUserId, string requestingUserId);
 }

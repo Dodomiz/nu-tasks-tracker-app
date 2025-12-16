@@ -132,6 +132,138 @@ public class GroupService(
         logger.LogInformation("Group {GroupId} deleted by user {UserId}", groupId, userId);
     }
 
+    public async Task<GroupResponse> JoinGroupByInvitationAsync(string invitationCode, string userId)
+    {
+        var group = await groupRepository.GetByInvitationCodeAsync(invitationCode);
+        
+        if (group == null)
+        {
+            throw new KeyNotFoundException($"Group with invitation code {invitationCode} not found");
+        }
+
+        // Check if user is already a member
+        var existingMember = group.Members.FirstOrDefault(m => m.UserId == userId);
+        if (existingMember != null)
+        {
+            throw new InvalidOperationException("You are already a member of this group");
+        }
+
+        // Check member limit with concurrency safety
+        if (group.Members.Count >= 20)
+        {
+            throw new InvalidOperationException("Group has reached maximum of 20 members");
+        }
+
+        // Add user as regular member
+        var newMember = new GroupMember
+        {
+            UserId = userId,
+            Role = GroupRole.RegularUser,
+            JoinedAt = DateTime.UtcNow
+        };
+
+        group.Members.Add(newMember);
+
+        // Update group with optimistic concurrency
+        try
+        {
+            await groupRepository.UpdateAsync(group);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Concurrency error while joining group {GroupId}", group.Id);
+            // Re-check member count in case of concurrent joins
+            var refreshedGroup = await groupRepository.GetByIdAsync(group.Id);
+            if (refreshedGroup!.Members.Count >= 20)
+            {
+                throw new InvalidOperationException("Group has reached maximum of 20 members");
+            }
+            throw;
+        }
+
+        logger.LogInformation("User {UserId} joined group {GroupId} via invitation", userId, group.Id);
+
+        return group.ToGroupResponse(userId);
+    }
+
+    public async Task PromoteMemberAsync(string groupId, string targetUserId, string requestingUserId)
+    {
+        var group = await groupRepository.GetByIdAsync(groupId);
+        
+        if (group == null)
+        {
+            throw new KeyNotFoundException($"Group {groupId} not found");
+        }
+
+        // Check if requesting user is admin
+        var requestingMember = group.Members.FirstOrDefault(m => m.UserId == requestingUserId);
+        if (requestingMember?.Role != GroupRole.Admin)
+        {
+            throw new UnauthorizedAccessException("Only admins can promote members");
+        }
+
+        // Find target member
+        var targetMember = group.Members.FirstOrDefault(m => m.UserId == targetUserId);
+        if (targetMember == null)
+        {
+            throw new KeyNotFoundException($"Member {targetUserId} not found in group {groupId}");
+        }
+
+        // Check if already admin
+        if (targetMember.Role == GroupRole.Admin)
+        {
+            throw new InvalidOperationException("Member is already an admin");
+        }
+
+        // Promote to admin
+        targetMember.Role = GroupRole.Admin;
+        await groupRepository.UpdateAsync(group);
+
+        logger.LogInformation("User {TargetUserId} promoted to admin in group {GroupId} by {RequestingUserId}", 
+            targetUserId, groupId, requestingUserId);
+    }
+
+    public async Task RemoveMemberAsync(string groupId, string targetUserId, string requestingUserId)
+    {
+        var group = await groupRepository.GetByIdAsync(groupId);
+        
+        if (group == null)
+        {
+            throw new KeyNotFoundException($"Group {groupId} not found");
+        }
+
+        // Check if requesting user is admin
+        var requestingMember = group.Members.FirstOrDefault(m => m.UserId == requestingUserId);
+        if (requestingMember?.Role != GroupRole.Admin)
+        {
+            throw new UnauthorizedAccessException("Only admins can remove members");
+        }
+
+        // Find target member
+        var targetMember = group.Members.FirstOrDefault(m => m.UserId == targetUserId);
+        if (targetMember == null)
+        {
+            throw new KeyNotFoundException($"Member {targetUserId} not found in group {groupId}");
+        }
+
+        // Safeguard: cannot remove self if last admin
+        if (targetUserId == requestingUserId)
+        {
+            var adminCount = group.Members.Count(m => m.Role == GroupRole.Admin);
+            if (adminCount == 1)
+            {
+                throw new ArgumentException("Cannot remove yourself as the last admin. Promote another member first.");
+            }
+        }
+
+        // Remove member
+        group.Members.Remove(targetMember);
+        await groupRepository.UpdateAsync(group);
+
+        logger.LogInformation("User {TargetUserId} removed from group {GroupId} by {RequestingUserId}", 
+            targetUserId, groupId, requestingUserId);
+    }
+
     private async Task PopulateMemberDetailsAsync(List<MemberDto> members)
     {
         foreach (var member in members)

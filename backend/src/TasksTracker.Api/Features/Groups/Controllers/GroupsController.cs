@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using TasksTracker.Api.Core.Attributes;
 using TasksTracker.Api.Core.Domain;
 using TasksTracker.Api.Features.Groups.Models;
 using TasksTracker.Api.Features.Groups.Services;
@@ -81,6 +82,7 @@ public class GroupsController(
     /// Get specific group details
     /// </summary>
     [HttpGet("{id}")]
+    [RequireGroupMember]
     [ProducesResponseType(typeof(ApiResponse<GroupResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
@@ -115,6 +117,7 @@ public class GroupsController(
     /// <summary>
     /// Update group settings (Admin only)
     /// </summary>
+    [RequireGroupAdmin]
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(ApiResponse<GroupResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
@@ -161,6 +164,7 @@ public class GroupsController(
     /// <summary>
     /// Delete group (Admin only)
     /// </summary>
+    [RequireGroupAdmin]
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
@@ -197,6 +201,7 @@ public class GroupsController(
     /// Invite member to group via email (Admin only)
     /// </summary>
     [HttpPost("{id}/invite")]
+    [RequireGroupAdmin]
     [ProducesResponseType(typeof(ApiResponse<InviteResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
@@ -271,29 +276,20 @@ public class GroupsController(
     {
         try
         {
-            // Validate invitation code and get group
-            var valid = await invitationService.ValidateInvitationCodeAsync(invitationCode);
-            if (!valid)
-            {
-                return BadRequest(ApiResponse<object>.ErrorResponse(
-                    "INVALID_CODE",
-                    "Invitation code is invalid or expired"));
-            }
-
-            // Get group by invitation code
-            var group = await groupService.GetGroupAsync(invitationCode, UserId);
-
-            // Check if user is already a member
-            if (group != null && !string.IsNullOrEmpty(group.MyRole))
-            {
-                return BadRequest(ApiResponse<object>.ErrorResponse(
-                    "ALREADY_MEMBER",
-                    "You are already a member of this group"));
-            }
-
-            // TODO: Implement actual join logic in GroupService
-            // For now, return group info
-            return Ok(ApiResponse<GroupResponse>.SuccessResponse(group));
+            var response = await groupService.JoinGroupByInvitationAsync(invitationCode, UserId);
+            logger.LogInformation("User {UserId} joined group {GroupId}", UserId, response.Id);
+            return Ok(ApiResponse<GroupResponse>.SuccessResponse(response));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<object>.ErrorResponse(
+                "INVALID_CODE",
+                "Invitation code is invalid or group not found"));
+        }
+        catch (InvalidOperationException ex)
+        {
+            var errorCode = ex.Message.Contains("already a member") ? "ALREADY_MEMBER" : "MEMBER_LIMIT";
+            return BadRequest(ApiResponse<object>.ErrorResponse(errorCode, ex.Message));
         }
         catch (Exception ex)
         {
@@ -308,21 +304,29 @@ public class GroupsController(
     /// Promote member to Admin (Admin only)
     /// </summary>
     [HttpPost("{groupId}/members/{userId}/promote")]
+    [RequireGroupAdmin(groupIdParam: "groupId")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PromoteMember(string groupId, string userId)
     {
         try
         {
-            // TODO: Implement PromoteMemberAsync in GroupService
-            return Ok(ApiResponse<object>.SuccessResponse(new { message = "Member promoted successfully" }));
+            await groupService.PromoteMemberAsync(groupId, userId, UserId);
+            return Ok(ApiResponse<object>.SuccessResponse(new { message = "Member promoted to admin successfully" }));
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
             return NotFound(ApiResponse<object>.ErrorResponse(
                 "NOT_FOUND",
-                "Group or member not found"));
+                ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<object>.ErrorResponse(
+                "ALREADY_ADMIN",
+                ex.Message));
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -343,6 +347,7 @@ public class GroupsController(
     /// Remove member from group (Admin only)
     /// </summary>
     [HttpDelete("{groupId}/members/{userId}")]
+    [RequireGroupAdmin(groupIdParam: "groupId")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
@@ -351,14 +356,14 @@ public class GroupsController(
     {
         try
         {
-            // TODO: Implement RemoveMemberAsync in GroupService
+            await groupService.RemoveMemberAsync(groupId, userId, UserId);
             return NoContent();
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
             return NotFound(ApiResponse<object>.ErrorResponse(
                 "NOT_FOUND",
-                "Group or member not found"));
+                ex.Message));
         }
         catch (UnauthorizedAccessException ex)
         {
