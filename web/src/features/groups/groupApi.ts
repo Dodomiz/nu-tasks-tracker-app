@@ -77,8 +77,8 @@ export const groupApi = apiSlice.injectEndpoints({
         url: '/groups',
         method: 'POST',
         body,
-      transformResponse: (response: any) => response.data || response,
       }),
+      transformResponse: (response: any) => response.data || response,
       invalidatesTags: [{ type: 'Group', id: 'LIST' }],
     }),
 
@@ -88,8 +88,8 @@ export const groupApi = apiSlice.injectEndpoints({
         url: `/groups/${id}`,
         method: 'PUT',
         body,
-      transformResponse: (response: any) => response.data || response,
       }),
+      transformResponse: (response: any) => response.data || response,
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'Group', id },
         { type: 'Group', id: 'LIST' },
@@ -101,9 +101,9 @@ export const groupApi = apiSlice.injectEndpoints({
       query: ({ groupId, email }) => ({
         url: `/groups/${groupId}/invite`,
         method: 'POST',
-      transformResponse: (response: any) => response.data || response,
         body: { email },
       }),
+      transformResponse: (response: any) => response.data || response,
       invalidatesTags: (_result, _error, { groupId }) => [{ type: 'Group', id: groupId }],
     }),
 
@@ -111,9 +111,9 @@ export const groupApi = apiSlice.injectEndpoints({
     joinGroup: builder.mutation<Group, string>({
       query: (invitationCode) => ({
         url: `/groups/join/${invitationCode}`,
-      transformResponse: (response: any) => response.data || response,
         method: 'POST',
       }),
+      transformResponse: (response: any) => response.data || response,
       invalidatesTags: [{ type: 'Group', id: 'LIST' }],
     }),
 

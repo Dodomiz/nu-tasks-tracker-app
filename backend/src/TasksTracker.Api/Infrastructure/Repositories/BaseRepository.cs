@@ -1,3 +1,4 @@
+using MongoDB.Bson;
 using MongoDB.Driver;
 using TasksTracker.Api.Core.Interfaces;
 using TasksTracker.Api.Infrastructure.Data;
@@ -10,7 +11,8 @@ public class BaseRepository<T>(MongoDbContext context, string collectionName) : 
 
     public virtual async Task<T?> GetByIdAsync(string id)
     {
-        var filter = Builders<T>.Filter.Eq("_id", id);
+        // Use ObjectId filter for MongoDB to properly handle BsonRepresentation
+        var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
         return await _collection.Find(filter).FirstOrDefaultAsync();
     }
 
@@ -27,14 +29,16 @@ public class BaseRepository<T>(MongoDbContext context, string collectionName) : 
 
     public virtual async Task<bool> UpdateAsync(string id, T entity)
     {
-        var filter = Builders<T>.Filter.Eq("_id", id);
+        // Use ObjectId filter for MongoDB to properly handle BsonRepresentation
+        var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
         var result = await _collection.ReplaceOneAsync(filter, entity);
         return result.ModifiedCount > 0;
     }
 
     public virtual async Task<bool> DeleteAsync(string id)
     {
-        var filter = Builders<T>.Filter.Eq("_id", id);
+        // Use ObjectId filter for MongoDB to properly handle BsonRepresentation
+        var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
         var result = await _collection.DeleteOneAsync(filter);
         return result.DeletedCount > 0;
     }
