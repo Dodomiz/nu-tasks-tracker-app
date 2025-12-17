@@ -6,11 +6,14 @@ import { logout } from '@/features/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
 import LanguageSelector from '@/components/LanguageSelector';
 import { useRTL } from '@/hooks/useRTL';
-import { formatDate, formatRelative } from '@/utils/dateFormatter';
 import { useState } from 'react';
-import CreateTaskForm from '@/components/CreateTaskForm';
-import Modal from '@/components/Modal';
-import { addToast } from '@/app/slices/notificationsSlice';
+import { useGetDashboardQuery } from '../api/dashboardApi';
+import GroupCard from '../components/GroupCard';
+import GroupCardSkeleton from '../components/GroupCardSkeleton';
+import EmptyGroupsState from '../components/EmptyGroupsState';
+import CreateTaskFromGroupModal from '../components/CreateTaskFromGroupModal';
+import MemberListModal from '../components/MemberListModal';
+import ManageMembersModalWrapper from '../components/ManageMembersModalWrapper';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
@@ -19,14 +22,14 @@ export default function DashboardPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [logoutMutation] = useLogoutMutation();
-  const currentLang = useAppSelector((state) => state.language.current);
-  const currentGroupId = useAppSelector((state) => state.group.currentGroupId);
+
+  // Fetch dashboard data from API
+  const { data: dashboardData, isLoading, error } = useGetDashboardQuery({ page: 1, pageSize: 12 });
 
   const handleLogout = async () => {
     try {
       await logoutMutation().unwrap();
     } catch (err) {
-      // Logout failed on server, but we'll clear local state anyway
       console.error('Logout error:', err);
     } finally {
       dispatch(logout());
@@ -34,10 +37,33 @@ export default function DashboardPage() {
     }
   };
 
-  const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [selectedGroupForTask, setSelectedGroupForTask] = useState<string | null>(null);
+  const [selectedGroupForMembers, setSelectedGroupForMembers] = useState<string | null>(null);
+  const [selectedGroupForManageMembers, setSelectedGroupForManageMembers] = useState<string | null>(null);
+
+  const handleCreateTask = (groupId: string) => {
+    setSelectedGroupForTask(groupId);
+  };
+
+  const handleManageMembers = (groupId: string) => {
+    setSelectedGroupForManageMembers(groupId);
+  };
+
+  const handleEditGroup = (groupId: string) => {
+    // Navigate to group dashboard where settings can be accessed
+    navigate(`/groups/${groupId}/dashboard`);
+  };
+
+  const handleViewMembers = (groupId: string) => {
+    setSelectedGroupForMembers(groupId);
+  };
+
+  const selectedGroup = dashboardData?.groups.find((g) => g.id === selectedGroupForTask);
+  const selectedGroupForMemberList = dashboardData?.groups.find((g) => g.id === selectedGroupForMembers);
 
   return (
     <div className={`min-h-screen bg-gray-50 ${isRTL ? 'rtl' : ''}`}>
+      {/* Navigation Header - Preserved from original */}
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
@@ -57,61 +83,128 @@ export default function DashboardPage() {
         </div>
       </nav>
 
+      {/* Main Content - Groups Dashboard */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="card">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 rtl:text-right">
-              {t('dashboard.welcome', { name: user?.firstName })}
+        <div className="px-4 sm:px-0">
+          {/* Page Header */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 rtl:text-right">
+              {t('dashboard.myGroups', { defaultValue: 'My Groups' })}
             </h2>
-            <p className="text-gray-600 rtl:text-right">
-              {t('dashboard.noTasks')}
+            <p className="mt-1 text-sm text-gray-600 rtl:text-right">
+              {t('dashboard.manageGroups', { defaultValue: 'View and manage your group tasks' })}
             </p>
-            
-            {/* Quick Actions */}
-            <div className="mt-6 flex gap-4 flex-wrap">
-              <button
-                onClick={() => navigate('/profile')}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              >
-                {t('dashboard.viewProfile', { defaultValue: 'View Profile' })}
-              </button>
-              <button
-                onClick={() => navigate('/groups/create')}
-                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
-              >
-                {t('dashboard.createGroup', { defaultValue: 'Create Group' })}
-              </button>
-                <button
-                  onClick={() => setTaskModalOpen(true)}
-                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
-                >
-                  {t('dashboard.createTask', { defaultValue: 'Create & Assign Task' })}
-                </button>
-            </div>
-
-            <div className="mt-6 text-sm text-gray-500 rtl:text-right">
-              <p>
-                {t('common.today')}: {formatDate(new Date(), currentLang)}
-              </p>
-              <p>
-                {t('common.lastUpdated')}: {formatRelative(new Date(), new Date(), currentLang)}
-              </p>
-            </div>
-            <Modal open={taskModalOpen} onClose={() => setTaskModalOpen(false)} title={t('dashboard.createTask', { defaultValue: 'Create & Assign Task' })}>
-              <CreateTaskForm
-                defaultGroupId={currentGroupId || undefined}
-                onSuccess={() => {
-                  setTaskModalOpen(false);
-                  dispatch(addToast({ id: Date.now().toString(), message: t('dashboard.taskCreated', { defaultValue: 'Task created successfully' }), type: 'success' }));
-                }}
-                onError={(msg?: string) => {
-                  dispatch(addToast({ id: Date.now().toString(), message: msg || t('dashboard.taskCreateError', { defaultValue: 'Failed to create task' }), type: 'error' }));
-                }}
-              />
-            </Modal>
           </div>
+
+          {/* Error State */}
+          {error && (
+            <div
+              className="rounded-md bg-red-50 p-4 mb-6"
+              role="alert"
+              aria-live="assertive"
+            >
+              <div className="flex">
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">
+                    {t('dashboard.errorTitle', { defaultValue: 'Error loading groups' })}
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    <p>
+                      {t('dashboard.errorMessage', { defaultValue: 'Unable to load your groups. Please try again.' })}
+                    </p>
+                  </div>
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={() => window.location.reload()}
+                      className="text-sm font-medium text-red-800 hover:text-red-900 underline"
+                    >
+                      {t('common.retry', { defaultValue: 'Retry' })}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {isLoading && !error && (
+            <div
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              role="status"
+              aria-label={t('dashboard.loading', { defaultValue: 'Loading groups' })}
+            >
+              {[1, 2, 3].map((i) => (
+                <GroupCardSkeleton key={i} />
+              ))}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && !error && dashboardData && dashboardData.groups.length === 0 && (
+            <EmptyGroupsState />
+          )}
+
+          {/* Groups Grid */}
+          {!isLoading && !error && dashboardData && dashboardData.groups.length > 0 && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {dashboardData.groups.map((group) => (
+                  <GroupCard
+                    key={group.id}
+                    group={group}
+                    onCreateTask={handleCreateTask}
+                    onManageMembers={handleManageMembers}
+                    onEditGroup={handleEditGroup}
+                    onViewMembers={handleViewMembers}
+                  />
+                ))}
+              </div>
+
+              {/* Load More Indicator (for future infinite scroll) */}
+              {dashboardData.hasMore && (
+                <div className="mt-6 text-center">
+                  <button
+                    type="button"
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                    aria-label={t('dashboard.loadMore', { defaultValue: 'Load more groups' })}
+                  >
+                    {t('dashboard.loadMore', { defaultValue: 'Load More Groups' })}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </main>
+
+      {/* Task Creation Modal */}
+      {selectedGroup && (
+        <CreateTaskFromGroupModal
+          isOpen={selectedGroupForTask !== null}
+          onClose={() => setSelectedGroupForTask(null)}
+          group={selectedGroup}
+        />
+      )}
+
+      {/* Member List Modal */}
+      {selectedGroupForMemberList && (
+        <MemberListModal
+          isOpen={selectedGroupForMembers !== null}
+          onClose={() => setSelectedGroupForMembers(null)}
+          group={selectedGroupForMemberList}
+          currentUserRole={selectedGroupForMemberList.myRole}
+        />
+      )}
+
+      {/* Manage Members Modal */}
+      {selectedGroupForManageMembers && (
+        <ManageMembersModalWrapper
+          groupId={selectedGroupForManageMembers}
+          currentUserId={user?.id || ''}
+          onClose={() => setSelectedGroupForManageMembers(null)}
+        />
+      )}
     </div>
   );
 }

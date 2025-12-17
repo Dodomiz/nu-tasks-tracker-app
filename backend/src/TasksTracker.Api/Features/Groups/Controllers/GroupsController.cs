@@ -14,6 +14,7 @@ namespace TasksTracker.Api.Features.Groups.Controllers;
 public class GroupsController(
     IGroupService groupService,
     IInvitationService invitationService,
+    IInvitesService invitesService,
     ILogger<GroupsController> logger) : ControllerBase
 {
     private string UserId => User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
@@ -377,6 +378,12 @@ public class GroupsController(
                 "CANNOT_REMOVE_SELF",
                 ex.Message));
         }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<object>.ErrorResponse(
+                "LAST_ADMIN",
+                ex.Message));
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error removing member from group {GroupId}", groupId);
@@ -385,4 +392,224 @@ public class GroupsController(
                 "An error occurred while removing the member"));
         }
     }
+
+    // ========== New Invites Endpoints (FR-025) ==========
+
+    /// <summary>
+    /// Create invite for group via email (Admin only)
+    /// </summary>
+    [HttpPost("{groupId}/invites")]
+    [RequireGroupAdmin(groupIdParam: "groupId")]
+    [ProducesResponseType(typeof(ApiResponse<InviteDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> CreateInvite(string groupId, [FromBody] InviteMemberRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ApiResponse<object>.ErrorResponse(
+                "VALIDATION_ERROR",
+                "Invalid email address"));
+        }
+
+        try
+        {
+            var invite = await invitesService.CreateInviteAsync(groupId, request.Email, UserId);
+            logger.LogInformation("Invite {InviteId} created for group {GroupId} by user {UserId}", 
+                invite.Id, groupId, UserId);
+            
+            return CreatedAtAction(
+                nameof(GetInvites),
+                new { groupId },
+                ApiResponse<InviteDto>.SuccessResponse(invite));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse<object>.ErrorResponse(
+                "VALIDATION_ERROR",
+                ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<object>.ErrorResponse(
+                "INVITE_ERROR",
+                ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, ApiResponse<object>.ErrorResponse(
+                "NOT_ADMIN",
+                ex.Message));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<object>.ErrorResponse(
+                "GROUP_NOT_FOUND",
+                ex.Message));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error creating invite for group {GroupId}", groupId);
+            return StatusCode(500, ApiResponse<object>.ErrorResponse(
+                "SERVER_ERROR",
+                "An error occurred while creating the invite"));
+        }
+    }
+
+    /// <summary>
+    /// Get all invites for a group (Admin only)
+    /// </summary>
+    [HttpGet("{groupId}/invites")]
+    [RequireGroupAdmin(groupIdParam: "groupId")]
+    [ProducesResponseType(typeof(ApiResponse<List<InviteDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetInvites(string groupId)
+    {
+        try
+        {
+            var invites = await invitesService.GetGroupInvitesAsync(groupId, UserId);
+            return Ok(ApiResponse<List<InviteDto>>.SuccessResponse(invites));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<object>.ErrorResponse(
+                "GROUP_NOT_FOUND",
+                ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, ApiResponse<object>.ErrorResponse(
+                "NOT_MEMBER",
+                ex.Message));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error fetching invites for group {GroupId}", groupId);
+            return StatusCode(500, ApiResponse<object>.ErrorResponse(
+                "SERVER_ERROR",
+                "An error occurred while fetching invites"));
+        }
+    }
+
+    /// <summary>
+    /// Resend invite email (Admin only)
+    /// </summary>
+    [HttpPost("{groupId}/invites/{inviteId}/resend")]
+    [RequireGroupAdmin(groupIdParam: "groupId")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ResendInvite(string groupId, string inviteId)
+    {
+        try
+        {
+            await invitesService.ResendInviteAsync(groupId, inviteId, UserId);
+            return Ok(ApiResponse<object>.SuccessResponse(new { message = "Invite resent successfully" }));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<object>.ErrorResponse(
+                "NOT_FOUND",
+                ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<object>.ErrorResponse(
+                "INVALID_STATUS",
+                ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, ApiResponse<object>.ErrorResponse(
+                "NOT_ADMIN",
+                ex.Message));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error resending invite {InviteId}", inviteId);
+            return StatusCode(500, ApiResponse<object>.ErrorResponse(
+                "SERVER_ERROR",
+                "An error occurred while resending the invite"));
+        }
+    }
+
+    /// <summary>
+    /// Cancel invite (Admin only)
+    /// </summary>
+    [HttpDelete("{groupId}/invites/{inviteId}")]
+    [RequireGroupAdmin(groupIdParam: "groupId")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CancelInvite(string groupId, string inviteId)
+    {
+        try
+        {
+            await invitesService.CancelInviteAsync(groupId, inviteId, UserId);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<object>.ErrorResponse(
+                "NOT_FOUND",
+                ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<object>.ErrorResponse(
+                "INVALID_STATUS",
+                ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, ApiResponse<object>.ErrorResponse(
+                "NOT_ADMIN",
+                ex.Message));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error canceling invite {InviteId}", inviteId);
+            return StatusCode(500, ApiResponse<object>.ErrorResponse(
+                "SERVER_ERROR",
+                "An error occurred while canceling the invite"));
+        }
+    }
+
+        /// <summary>
+        /// Get all members of a group with hydrated user details (All members)
+        /// </summary>
+        [HttpGet("{groupId}/members")]
+        [ProducesResponseType(typeof(ApiResponse<List<MemberDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetMembers(string groupId)
+        {
+            try
+            {
+                var members = await groupService.GetGroupMembersAsync(groupId, UserId);
+                return Ok(ApiResponse<List<MemberDto>>.SuccessResponse(members));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<object>.ErrorResponse(
+                    "GROUP_NOT_FOUND",
+                    ex.Message));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, ApiResponse<object>.ErrorResponse(
+                    "NOT_MEMBER",
+                    ex.Message));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error fetching members for group {GroupId}", groupId);
+                return StatusCode(500, ApiResponse<object>.ErrorResponse(
+                    "SERVER_ERROR",
+                    "An error occurred while fetching members"));
+            }
+        }
 }

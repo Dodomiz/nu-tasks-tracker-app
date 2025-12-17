@@ -82,7 +82,7 @@
         "welcome": "שלום, {{name}}!",
         "myTasks": "המשימות שלי",
         "noTasks": "אין לך משימות עדיין.",
-        "createTask": "צור ומשבץ משימה",
+        "createTask": "צור משימה חדשה",
         "taskCreated": "המשימה נוצרה בהצלחה",
         "taskCreateError": "יצירת המשימה נכשלה",
         "tasks": "משימות",

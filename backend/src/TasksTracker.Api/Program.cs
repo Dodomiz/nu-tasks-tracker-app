@@ -45,11 +45,38 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<IDistributionRepository, DistributionRepository>();
+builder.Services.AddScoped<IInvitesRepository, InvitesRepository>();
+
+// Configure Redis Cache (optional, falls back to in-memory)
+var redisConnection = builder.Configuration.GetConnectionString("Redis");
+var useDashboardOptimizations = builder.Configuration.GetValue<bool>("FeatureFlags:DashboardOptimizations", false);
+
+if (!string.IsNullOrEmpty(redisConnection))
+{
+    try
+    {
+        builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
+            StackExchange.Redis.ConnectionMultiplexer.Connect(redisConnection));
+        builder.Services.AddSingleton<TasksTracker.Api.Infrastructure.Caching.ICacheService, TasksTracker.Api.Infrastructure.Caching.RedisCacheService>();
+        Log.Information("Redis cache configured: {Connection}", redisConnection.Split(',')[0]);
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "Redis connection failed, falling back to in-memory cache");
+        builder.Services.AddSingleton<TasksTracker.Api.Infrastructure.Caching.ICacheService, TasksTracker.Api.Infrastructure.Caching.InMemoryCacheService>();
+    }
+}
+else
+{
+    Log.Information("Redis not configured, using in-memory cache");
+    builder.Services.AddSingleton<TasksTracker.Api.Infrastructure.Caching.ICacheService, TasksTracker.Api.Infrastructure.Caching.InMemoryCacheService>();
+}
 
 // Register Services
 builder.Services.AddScoped<TasksTracker.Api.Features.Auth.Services.IAuthService, TasksTracker.Api.Features.Auth.Services.AuthService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Groups.Services.IGroupService, TasksTracker.Api.Features.Groups.Services.GroupService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Groups.Services.IInvitationService, TasksTracker.Api.Features.Groups.Services.InvitationService>();
+builder.Services.AddScoped<TasksTracker.Api.Features.Groups.Services.IInvitesService, TasksTracker.Api.Features.Groups.Services.InvitesService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Categories.Services.ICategoryService, TasksTracker.Api.Features.Categories.Services.CategoryService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Templates.Services.ITemplateService, TasksTracker.Api.Features.Templates.Services.TemplateService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Tasks.Services.ITaskService, TasksTracker.Api.Features.Tasks.Services.TaskService>();
@@ -57,6 +84,29 @@ builder.Services.AddScoped<TasksTracker.Api.Features.Workload.Services.IWorkload
 builder.Services.AddScoped<TasksTracker.Api.Features.Distribution.Services.IDistributionService, TasksTracker.Api.Features.Distribution.Services.DistributionService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Distribution.Services.AIDistributionEngine>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Distribution.Services.RuleBasedDistributor>();
+
+// Register Feature Flag Service (FR-024 Sprint 3)
+builder.Services.AddSingleton<TasksTracker.Api.Infrastructure.FeatureFlags.IFeatureFlagService, TasksTracker.Api.Infrastructure.FeatureFlags.PercentageFeatureFlagService>();
+
+// Dashboard service with optional optimizations (FR-024 Sprint 2)
+if (useDashboardOptimizations)
+{
+    builder.Services.AddScoped<TasksTracker.Api.Features.Dashboard.Services.DashboardService>();
+    builder.Services.AddScoped<TasksTracker.Api.Features.Dashboard.Services.DashboardServiceOptimized>();
+    builder.Services.AddScoped<TasksTracker.Api.Features.Dashboard.Services.IDashboardService>(sp =>
+    {
+        var optimized = sp.GetRequiredService<TasksTracker.Api.Features.Dashboard.Services.DashboardServiceOptimized>();
+        var cache = sp.GetRequiredService<TasksTracker.Api.Infrastructure.Caching.ICacheService>();
+        var logger = sp.GetRequiredService<ILogger<TasksTracker.Api.Features.Dashboard.Services.CachedDashboardService>>();
+        return new TasksTracker.Api.Features.Dashboard.Services.CachedDashboardService(optimized, cache, logger);
+    });
+    Log.Information("Dashboard optimizations enabled (aggregation + caching)");
+}
+else
+{
+    builder.Services.AddScoped<TasksTracker.Api.Features.Dashboard.Services.IDashboardService, TasksTracker.Api.Features.Dashboard.Services.DashboardService>();
+    Log.Information("Dashboard optimizations disabled (basic service)");
+}
 
 // Register HttpClient for OpenAI
 builder.Services.AddHttpClient("OpenAI");
@@ -89,6 +139,10 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+
+// Add Health Checks (FR-024 Sprint 3)
+builder.Services.AddHealthChecks()
+    .AddCheck<TasksTracker.Api.Infrastructure.Health.DashboardHealthCheck>("dashboard", tags: new[] { "ready" });
 
 // Add Controllers
 builder.Services.AddControllers();
@@ -151,10 +205,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Health check endpoint
-app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
-   .WithName("HealthCheck")
-   .WithOpenApi();
+// Health check endpoint with detailed checks (FR-024 Sprint 3)
+app.MapHealthChecks("/health");
 
 // Log URLs after server starts
 app.Lifetime.ApplicationStarted.Register(() =>

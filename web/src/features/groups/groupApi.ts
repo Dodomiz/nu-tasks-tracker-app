@@ -153,6 +153,38 @@ export const groupApi = apiSlice.injectEndpoints({
       },
     }),
 
+    // Get group members (hydrated)
+    getGroupMembers: builder.query<import('@/types/group').Member[], string>({
+      query: (groupId) => `/groups/${groupId}/members`,
+      transformResponse: (response: any) => response.data || response,
+      providesTags: (_result, _error, groupId) => [{ type: 'Group', id: groupId }],
+    }),
+
+    // Get group invites
+    getGroupInvites: builder.query<import('@/types/group').InviteDto[], string>({
+      query: (groupId) => `/groups/${groupId}/invites`,
+      transformResponse: (response: any) => response.data || response,
+      providesTags: (_result, _error, groupId) => [{ type: 'GroupInvites', id: groupId }],
+    }),
+
+    // Resend invite
+    resendInvite: builder.mutation<void, { groupId: string; inviteId: string }>({
+      query: ({ groupId, inviteId }) => ({
+        url: `/groups/${groupId}/invites/${inviteId}/resend`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, { groupId }) => [{ type: 'GroupInvites', id: groupId }],
+    }),
+
+    // Cancel invite
+    cancelInvite: builder.mutation<void, { groupId: string; inviteId: string }>({
+      query: ({ groupId, inviteId }) => ({
+        url: `/groups/${groupId}/invites/${inviteId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, { groupId }) => [{ type: 'GroupInvites', id: groupId }],
+    }),
+
     // Delete group
     deleteGroup: builder.mutation<void, string>({
       query: (id) => ({
@@ -192,5 +224,9 @@ export const {
   useJoinGroupMutation,
   usePromoteMemberMutation,
   useRemoveMemberMutation,
-useDeleteGroupMutation,
+  useGetGroupMembersQuery,
+  useGetGroupInvitesQuery,
+  useResendInviteMutation,
+  useCancelInviteMutation,
+  useDeleteGroupMutation,
 } = groupApi;

@@ -43,8 +43,14 @@ public class Group
     [BsonElement("updatedAt")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
+    [BsonElement("taskCount")]
+    public int TaskCount { get; set; } = 0;
+    
+    [BsonElement("lastActivity")]
+    public DateTime LastActivity { get; set; } = DateTime.UtcNow;
+    
     [BsonElement("schemaVersion")]
-    public int SchemaVersion { get; set; } = 1;
+    public int SchemaVersion { get; set; } = 2;
 }
 
 public class GroupMember

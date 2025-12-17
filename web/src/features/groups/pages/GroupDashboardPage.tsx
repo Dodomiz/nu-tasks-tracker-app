@@ -2,11 +2,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useGetGroupQuery, usePromoteMemberMutation, useRemoveMemberMutation } from '@/features/groups/groupApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
-import { selectIsAdmin } from '@/features/groups/groupSlice';
 import { selectCurrentUser } from '@/features/auth/authSlice';
 import { formatDate } from '@/utils/dateFormatter';
 import { useState } from 'react';
-import InviteMembersModal from '../components/InviteMembersModal';
+import MembersModal from '../components/MembersModal';
+import GroupTasksPanel from '../components/GroupTasksPanel';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { toast } from 'react-hot-toast';
 
@@ -20,14 +20,17 @@ export default function GroupDashboardPage() {
   const { groupId } = useParams<{ groupId: string }>();
   const { i18n } = useTranslation();
   const navigate = useNavigate();
-  const isAdmin = useAppSelector(selectIsAdmin);
   const currentUser = useAppSelector(selectCurrentUser);
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
+  const [isTasksPanelOpen, setIsTasksPanelOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
 
   const { data: group, isLoading, error } = useGetGroupQuery(groupId!, {
     skip: !groupId,
   });
+
+  // Determine admin status from the fetched group data
+  const isAdmin = group?.myRole === 'Admin';
 
   const [promoteMember, { isLoading: isPromoting }] = usePromoteMemberMutation();
   const [removeMember, { isLoading: isRemoving }] = useRemoveMemberMutation();
@@ -167,14 +170,22 @@ export default function GroupDashboardPage() {
                   </div>
                 </div>
               </div>
-              {isAdmin && (
+              <div className="flex gap-2">
                 <button
-                  onClick={() => setIsInviteModalOpen(true)}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
+                  onClick={() => setIsTasksPanelOpen(true)}
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium"
                 >
-                  Invite Members
+                  View Tasks
                 </button>
-              )}
+                {isAdmin && (
+                  <button
+                    onClick={() => setIsMembersModalOpen(true)}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
+                  >
+                    Manage Members
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -347,13 +358,27 @@ export default function GroupDashboardPage() {
         </div>
       </div>
 
-      {/* Invite Modal */}
-      {isInviteModalOpen && groupId && (
-        <InviteMembersModal
+      {/* Members Modal */}
+      {isMembersModalOpen && groupId && (
+        <MembersModal
           groupId={groupId}
           groupName={group.name}
           invitationCode={group.invitationCode || ''}
-          onClose={() => setIsInviteModalOpen(false)}
+          myRole={group.myRole}
+          currentUserId={currentUser?.id || ''}
+          onClose={() => setIsMembersModalOpen(false)}
+        />
+      )}
+
+      {/* Group Tasks Panel */}
+      {groupId && (
+        <GroupTasksPanel
+          groupId={groupId}
+          groupName={group.name}
+          myRole={group.myRole}
+          currentUserId={currentUser?.id || ''}
+          isOpen={isTasksPanelOpen}
+          onClose={() => setIsTasksPanelOpen(false)}
         />
       )}
     </>

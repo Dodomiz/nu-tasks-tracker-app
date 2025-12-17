@@ -5,6 +5,7 @@ export interface Member {
   firstName: string;
   lastName: string;
   email: string;
+  avatarUrl?: string | null;
   role: Role;
   joinedAt: string;
   invitedBy?: string;
@@ -62,4 +63,16 @@ export interface PromoteMemberRequest {
 export interface RemoveMemberRequest {
   groupId: string;
   userId: string;
+}
+
+export interface InviteDto {
+  id: string;
+  groupId: string;
+  email: string;
+  status: 'Pending' | 'Joined' | 'Declined' | 'Canceled' | 'Expired';
+  invitedBy: string;
+  invitedByName: string;
+  invitedAt: string;
+  respondedAt?: string;
+  sendCount: number;
 }

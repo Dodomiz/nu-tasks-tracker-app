@@ -1,203 +1,151 @@
 # Product Requirements Document (PRD)
-# NU - Tasks Management Application
-
-**Document Version:** 1.1  
-**Project Name:** NU (Tasks Tracker)  
-**Date:** December 14, 2025  
-**Status:** Active  
-**Tech Stack:** ASP.NET Core (.NET 8), MongoDB, React Native (Expo), Next.js, Redux Toolkit
-
----
 
 ## 1. Executive Summary
 
-**NU** is a cross-platform task management application designed for families, couples, roommates, and small businesses (up to 20 members per group). The platform addresses the challenge of unclear task ownership and unfair workload distribution through transparent task assignment, automated scheduling, smart notifications, and gamification features including leaderboards, competitive task races, and reward systems.
+This epic introduces two key enhancements to the Groups Dashboard:
+- Members Modal: Clicking the group card “Members” opens a modal showing all group members and pending invites, with the ability to add (invite via email), remove, and review roles (Admin/Member) and invite status (Pending/Joined/Declined).
+- Tasks Modal/List: Clicking “Tasks” opens a scoped group tasks view with filtering (status, assignee), sorting (created/updated), quick navigation into a task, and inline assign/unassign.
 
-The application enables:
-- Real-time task synchronization across mobile (iOS/Android) and web platforms
-- AI-powered task distribution for fair workload balancing
-- Public/private task visibility for sensitive assignments
-- Competitive task races with rewards to boost engagement
-- Recognition system for exceptional performance
-
-Built with ASP.NET Core backend, MongoDB database, React Native mobile apps, and Next.js web application, NU provides seamless real-time updates and push notifications to ensure accountability and motivation in shared task management.
-
----
+The goal is to streamline group administration and task triage directly from the dashboard, reduce navigation friction, and support a formal invite lifecycle with an `invites` collection.
 
 ## 2. Problem Statement
 
-**Core Problems:**
-- **Unclear Responsibility:** Family members and roommates lack clarity about who is responsible for which tasks
-- **Forgotten Tasks:** Recurring chores are frequently neglected or forgotten
-- **Unequal Distribution:** No objective system to ensure fair workload distribution
-- **No Accountability:** Difficulty tracking who completed what and when
-- **Low Motivation:** Lack of recognition or incentive for consistent task completion
-
-**Impact:**
-- Frequent conflicts and arguments over household responsibilities
-- Tasks remain incomplete or significantly delayed
-- No historical record of individual contributions
-- Perception of unfairness leads to frustration and resentment
-- Manual task assignment consumes excessive time and energy
-
-**Solution:**
-NU provides a structured, transparent, and gamified approach with automated scheduling, difficulty-based fair distribution, AI-powered task assignment, competitive races, and reward systems to drive engagement and accountability.
-
----
+- Managing group membership requires multiple page transitions and lacks a clear flow for pending invites.
+- Users cannot quickly triage group tasks (filter/sort/assign) in context; assignment requires opening each task.
+- Lack of visibility into invite status causes duplicate invites and onboarding friction.
 
 ## 3. Goals & Non-Goals
 
 ### Goals
-1. **Transparency:** Enable all group members to view task assignments and completion status in real-time
-2. **Fairness:** Ensure equal workload distribution using difficulty-based point systems (variance < 15%)
-3. **Accountability:** Track all task actions with timestamps, approval workflows, and audit logs
-4. **Automation:** Minimize manual scheduling through recurring tasks and AI-powered distribution
-5. **Engagement:** Drive participation through gamification (leaderboards, races, rewards, badges)
-6. **User Adoption:** Achieve 80% active usage within 2 weeks of group onboarding
-7. **Task Completion:** Maintain 85% on-time task completion rate
+- One-click access from group card to: members management and tasks triage.
+- Full invite lifecycle: send email invite, track status (Pending/Joined/Declined), cancel/resend.
+- Member management: view roles, remove members (with last-admin protection), list all members with first/last name.
+- Group tasks triage: filter by status (Pending/InProgress/Completed), filter by assignee, sort by created/updated, assign/unassign without leaving the list.
+- Respect existing auth/roles: only Admins can invite/remove members and assign tasks across members.
 
-### Non-Goals
-- **Project Management:** NU is not designed for complex project workflows with dependencies, Gantt charts, or critical path analysis
-- **Time Tracking:** Not a time-clock or billing system for professional services
-- **Large Organizations:** Not optimized for groups exceeding 20 members or enterprise-scale deployments
-- **Advanced Collaboration:** No built-in video conferencing, document editing, or file storage beyond task-related attachments
-- **Financial Transactions:** Rewards are descriptive (e.g., "$50 gift card") but no payment processing or cryptocurrency integration
 
----
+- Role editing/promotion is out of scope for this epic (view-only).
+- Notification templates and email provider selection are not finalized; use existing infrastructure or placeholders.
+- Real-time updates (SignalR) may be added later; not required for initial release.
 
 ## 4. User Flows
 
-### Flow 1: Admin Creates Group and Assigns First Tasks
+### Flow A: Members Modal (from Group Card)
 
-**Actors:** Admin (Group Creator)
+```mermaid
+flowchart TD
+   A[Click Members on Group Card] --> B[Open Members Modal]
+   B --> C[Tab: Members]
+   B --> D[Tab: Invites]
+   C --> C1[List members: First Last • Role • Joined]
+   C1 --> C2[Action: Remove member (Admin only)]
+   C2 --> C3{Is last admin?}
+   C3 -- Yes --> C4[Block action • Show warning]
+   C3 -- No --> C5[Confirm removal • Update group]
+   D --> D1[List invites: Email • Status(Pending/Joined/Declined)]
+   D1 --> D2[Actions: Resend • Cancel invite]
+   B --> E[Action: Add Member]
+   E --> E1[Enter Email]
+   E1 --> E2[Validate • Create Invite]
+   E2 --> E3[Send Email • Show Pending]
+```
 
-**Main Flow:**
-1. Admin registers account → email verification → login
-2. Admin creates new group (name, description, optional avatar)
-3. Admin becomes group owner with Admin privileges
-4. Admin invites members via email or shareable link
-5. Admin creates tasks from library or custom
-6. Admin assigns tasks to specific members with due dates
-7. Admin sets recurring schedule (daily, weekly, monthly, custom)
-8. Admin reviews distribution preview and confirms
-9. Members receive notifications of new task assignments
+Key actors: Admin (can invite/remove/resend/cancel), Member (view-only).  
+Decision points: last-admin protection; email validity; duplicate pending invite.
 
-**Decision Points:**
-- If task library sufficient → select from library; else → create custom task
-- If workload unbalanced → use AI distribution; else → manual assignment
+Edge cases:
+- Email already invited → show existing pending invite with resend option.
+- User already a member → show error and block invite.
+- Last admin removal is blocked until another admin exists.
 
-**Edge Cases:**
-- Invited member email not found → send invitation link
-- Member declines invitation → Admin removes from pending list
-- No tasks in preferred category → AI suggests alternative assignments
+### Flow B: Group Tasks View (from Group Card)
 
----
+```mermaid
+flowchart TD
+   A[Click Tasks on Group Card] --> B[Open Group Tasks View]
+   B --> C[Filters: Status • Assignee]
+   B --> D[Sort: Created • Updated]
+   B --> E[List: Task Name • Assignee • Status]
+   E --> F[Click Task → Open details panel]
+   F --> G[Inline actions: Assign/Unassign]
+   G --> H[Save changes • Update task]
+```
 
-### Flow 2: Regular User Completes Task and Earns Points
-
-**Actors:** Regular User
-
-**Main Flow:**
-1. User opens app → views today's task list
-2. User selects task → marks "In Progress"
-3. User completes task → marks "Completed"
-4. User adds optional notes and/or photo proof
-5. Admin receives notification for approval
-6. Admin reviews and approves → task status changes to "Approved"
-7. User earns points (difficulty × 10 + on-time bonus + feedback)
-8. Leaderboard updates with new ranking
-9. User receives feedback notification (👍 🎉 ⭐)
-
-**Decision Points:**
-- If task requires approval → await Admin confirmation; else → auto-approve
-- If completed on-time → +10% bonus points; else → base points only
-- If Admin rejects → user receives redo request notification
-
-**Edge Cases:**
-- User forgets to mark completed → auto-reminder at 7 PM
-- Task overdue → status changes to "Overdue", no bonus points
-- Network offline → task cached locally, syncs when online
-
----
-
-### Flow 3: Admin Creates Race with Reward
-
-**Actors:** Admin
-
-**Main Flow:**
-1. Admin navigates to "Races" section → clicks "Create Race"
-2. Admin enters race name, description, reward details (text + optional image)
-3. Admin selects race tasks (from existing or creates new)
-4. Admin sets race period (start date/time, end date/time)
-5. Admin selects participants (all members or specific users)
-6. Admin defines winning criteria (most tasks completed or highest points)
-7. Admin reviews and publishes race
-8. Participants receive race start notification
-9. Users view race dashboard with real-time leaderboard
-10. Race ends → winner announced via notification
-11. Winner's reward displayed in profile "My Rewards" section
-
-**Decision Points:**
-- If tie occurs → apply tiebreaker (first to finish or split reward)
-- If participant leaves group → remove from race automatically
-
-**Edge Cases:**
-- No participants complete any tasks → race ends with no winner
-- Multiple races overlap → users see combined task list with race indicators
-- Admin deletes race mid-competition → participants notified, tasks remain assigned
-
----
-
-### Flow 4: Admin Awards Reward for Exceptional Performance
-
-**Actors:** Admin
-
-**Main Flow:**
-1. Admin reviews completed task history
-2. Admin selects one or multiple completed tasks
-3. Admin clicks "Award Reward" button
-4. Admin enters reward description (e.g., "Movie night of your choice")
-5. Admin optionally adds reward image and notes
-6. Admin selects recipient(s) and confirms
-7. Recipient receives notification: "You earned a reward!"
-8. Reward appears in user's "My Rewards" section with associated task(s)
-9. Admin marks reward as "Claimed" when fulfilled
-
-**Decision Points:**
-- If multiple users completed task → award to one or all
-- If reward budget constrained → Admin adjusts reward value
-
-**Edge Cases:**
-- User no longer in group → reward notification fails gracefully
-- Reward not claimed within 30 days → reminder notification sent
-
----
-
-### Flow 5: User Requests Task Swap
-
-**Actors:** Regular User, Another User, Admin
-
-**Main Flow:**
-1. User views assigned task → clicks "Request Swap"
-2. User selects another member to swap with
-3. System sends swap request notification to target member
-4. Target member accepts or declines
-5. If accepted → Admin receives approval request
-6. Admin reviews swap rationale and approves/rejects
-7. If approved → tasks reassigned, notifications sent to both users
-8. Task history logs swap action with timestamp
-
-**Decision Points:**
-- If target declines → requester notified, can request from different member
-- If Admin rejects → both users notified with rejection reason
-
-**Edge Cases:**
-- Target user unavailable for swap period → system suggests alternative members
-- Both tasks have different difficulty → Admin adjusts point allocation if needed
-
----
+Key actors: Admin (full control), Member (view, self-assign if allowed by policy).  
+Edge cases:
+- No tasks → show empty state with Create Task CTA.
+- Filter + sort persist in session storage per group.
 
 ## 5. Functional Requirements
+
+### Members Modal
+- Open from group card “Members”.
+- Display members list: First Name, Last Name, Role (Admin/Member), Joined date.
+- Display invites list: Email, Status (Pending/Joined/Declined), InvitedAt, InvitedBy.
+- Add member:
+   - Validate email format; block duplicates (existing member or pending invite).
+   - Create invite record and send email.
+   - Show success toast and add to invites list with status=Pending.
+- Remove member (Admin only):
+   - Confirm removal; block if last admin.
+   - Remove membership and revoke group access.
+- Resend/cancel invite (Admin only).
+- Access control: Only Admins see invite/remove actions; Members can view.
+
+### Tasks View
+- Open from group card “Tasks”.
+- List items: Task Name, Assignee (avatar/initials + name), Status.
+- Filters: Status (Pending/InProgress/Completed), Assignee (All/Members).
+- Sort: CreatedDate (asc/desc), UpdatedDate (asc/desc).
+- Interactions:
+   - Click row → open details side panel.
+   - Assign/Unassign members inline (Admin only). Self-assign allowed if policy enables.
+   - Status change allowed if user is assignee or Admin (optional policy).
+- Empty states and loading skeletons consistent with existing UI.
+
+### Invite Lifecycle
+- States: Pending → Joined (on account creation/join) → Declined (explicit or expired).
+- Resend: Allowed while Pending.
+- Cancel: Allowed while Pending; moves to Canceled (hidden by default in UI).
+- Auto-expiry: Optional configuration (e.g., 14 days) marks invite as Expired.
+
+## 6. Technical Considerations
+
+- Data Model:
+   - Add `invites` collection: `{ id, groupId, email, status, invitedAt, invitedBy, respondedAt? }`.
+   - Group members remain in `groups.members` with `{ userId, role, joinedAt }`.
+- Backend:
+   - Controllers/Services follow existing layered architecture (Controller → Service → Repository → MongoDB).
+   - Email sending uses existing server access abstraction; queue or fire-and-forget as per current infra.
+   - Validation: last-admin protection, duplicate invite prevention, email format.
+   - Pagination for lists; indexes on `invites.groupId + status`, `tasks.groupId + status + updatedAt`.
+- Frontend:
+   - Functional components with TypeScript; Tailwind for styling; reuse existing modal patterns.
+   - RTK Query endpoints for members, invites, tasks; caching/invalidation on changes.
+   - Accessibility: focus trap in modal, keyboard navigation, ARIA labels.
+- Security & Auth:
+   - Only Admins can invite/remove/resend/cancel and assign tasks; audit changes.
+   - Avoid exposing emails of non-members except for invites within Admin modal.
+- Performance:
+   - Use existing aggregation/caching where possible (group-scoped queries).
+   - Batch user hydration for assignee/member display.
+
+## 7. Success Metrics
+
+- Time-to-complete admin actions: invite send < 5s; member removal < 3s.
+- Error rate for invite send < 1% over 7 days.
+- Task triage efficiency: 50% reduction in navigations per session for task assignment.
+- Adoption: 80% of active groups use Members/Tasks modals within 2 weeks.
+- Performance: P95 latency < 150ms for list queries; < 300ms for assign/unassign.
+
+## 8. Open Questions / Risks
+
+- Should non-admin members be allowed to self-assign tasks? If yes, under what policy?
+- Invite expiry policy default (e.g., 14 or 30 days)? Behavior after expiry?
+- Email template and localization for invites; sender identity domain.
+- Rate limiting on invites to prevent abuse.
+- Analytics needed for conversion from Pending → Joined per group?
+- Real-time updates for member/task changes (SignalR) in scope or follow-up?
 
 ### FR-001: User Authentication & Authorization
 - Email/password registration with validation (min 8 chars, uppercase, lowercase, digit)

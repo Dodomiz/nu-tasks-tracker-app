@@ -246,13 +246,13 @@ public class GroupService(
             throw new KeyNotFoundException($"Member {targetUserId} not found in group {groupId}");
         }
 
-        // Safeguard: cannot remove self if last admin
-        if (targetUserId == requestingUserId)
+        // Last-admin protection: cannot remove the last admin
+        if (targetMember.Role == GroupRole.Admin)
         {
             var adminCount = group.Members.Count(m => m.Role == GroupRole.Admin);
             if (adminCount == 1)
             {
-                throw new ArgumentException("Cannot remove yourself as the last admin. Promote another member first.");
+                throw new InvalidOperationException("Cannot remove the last admin. Promote another member first.");
             }
         }
 
@@ -277,4 +277,41 @@ public class GroupService(
             }
         }
     }
+
+        public async Task<List<MemberDto>> GetGroupMembersAsync(string groupId, string userId)
+        {
+            var group = await groupRepository.GetByIdAsync(groupId);
+        
+            if (group == null)
+            {
+                throw new KeyNotFoundException($"Group {groupId} not found");
+            }
+
+            // Check if user is a member
+            var isMember = group.Members.Any(m => m.UserId == userId);
+            if (!isMember)
+            {
+                throw new UnauthorizedAccessException("You are not a member of this group");
+            }
+
+            // Map to DTOs
+            var memberDtos = group.Members.Select(m => new MemberDto
+            {
+                UserId = m.UserId,
+                Role = m.Role.ToString(),
+                JoinedAt = m.JoinedAt,
+                FirstName = string.Empty,
+                LastName = string.Empty,
+                Email = string.Empty
+            }).ToList();
+
+            // Hydrate member details (batch lookup)
+            await PopulateMemberDetailsAsync(memberDtos);
+
+            // Sort by role (Admin first) then joinedAt
+            return memberDtos
+                .OrderByDescending(m => m.Role == "Admin")
+                .ThenBy(m => m.JoinedAt)
+                .ToList();
+        }
 }

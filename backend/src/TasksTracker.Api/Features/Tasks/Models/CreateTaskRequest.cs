@@ -13,3 +13,8 @@ public class CreateTaskRequest
     public DateTime DueAt { get; set; }
     public TaskFrequency Frequency { get; set; } = TaskFrequency.OneTime;
 }
+
+    public class AssignTaskRequest
+    {
+        public string AssigneeUserId { get; set; } = null!;
+    }

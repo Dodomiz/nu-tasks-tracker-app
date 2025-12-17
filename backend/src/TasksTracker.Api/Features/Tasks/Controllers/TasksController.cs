@@ -38,4 +38,61 @@ public class TasksController(ITaskService taskService) : ControllerBase
         var result = await taskService.ListAsync(query, ct);
         return Ok(ApiResponse<PagedResult<TaskResponse>>.SuccessResponse(result));
     }
+
+        /// <summary>
+        /// Assign task to a group member (Admin only)
+        /// </summary>
+        [HttpPatch("{taskId}/assign")]
+        [Authorize]
+        public async Task<IActionResult> AssignTask(string taskId, [FromBody] AssignTaskRequest request, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(request.AssigneeUserId))
+            {
+                return BadRequest("AssigneeUserId is required.");
+            }
+
+            var userId = User.FindFirst("sub")?.Value ?? string.Empty;
+
+            try
+            {
+                await taskService.AssignTaskAsync(taskId, request.AssigneeUserId, userId, ct);
+                return Ok(new { message = "Task assigned successfully" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { error = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Unassign task (reassigns to requesting admin)
+        /// </summary>
+        [HttpPatch("{taskId}/unassign")]
+        [Authorize]
+        public async Task<IActionResult> UnassignTask(string taskId, CancellationToken ct)
+        {
+            var userId = User.FindFirst("sub")?.Value ?? string.Empty;
+
+            try
+            {
+                await taskService.UnassignTaskAsync(taskId, userId, ct);
+                return Ok(new { message = "Task unassigned successfully" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { error = ex.Message });
+            }
+        }
 }

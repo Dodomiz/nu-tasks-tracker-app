@@ -78,6 +78,19 @@ public class InviteResponse
     public string InvitationUrl { get; set; } = string.Empty;
 }
 
+public class InviteDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string GroupId { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public string InvitedBy { get; set; } = string.Empty;
+    public string InvitedByName { get; set; } = string.Empty;
+    public DateTime InvitedAt { get; set; }
+    public DateTime? RespondedAt { get; set; }
+    public int SendCount { get; set; }
+}
+
 public class GroupsResponse
 {
     public List<GroupResponse> Groups { get; set; } = new();

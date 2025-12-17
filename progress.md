@@ -1,3 +1,36 @@
+## 2025-12-17 (FR-024: Backend fix + API wiring)
+- Fixed backend build by cleaning duplicated/corrupted DashboardService implementation.
+- Verified solution builds (0 errors) via dotnet build.
+- Added web endpoint: web/src/features/dashboard/api/dashboardApi.ts (RTK Query via apiSlice).
+- Switched DashboardPage to use /api/dashboard instead of mock data.
+- Verified frontend bundles with npx vite build.
+
+## 2025-12-17 (FR-024: Groups Dashboard - Sprint 1)
+- **Epic:** Groups Overview & Task Creation Dashboard (Frontend Foundation)
+- **Sprint 1 Progress:** 87.5% complete (7 of 8 stories done)
+- **Files Created:**
+  - `/web/src/types/dashboard.ts` - TypeScript types for dashboard (MemberSummary, GroupCardDto, DashboardResponse)
+  - `/web/src/features/dashboard/components/MemberAvatarStack.tsx` - Avatar stack with crown badges (150 lines)
+  - `/web/src/features/dashboard/components/GroupCard.tsx` - Group card component (192 lines)
+  - `/web/src/features/dashboard/components/GroupCardSkeleton.tsx` - Loading skeleton (40 lines)
+  - `/web/src/features/dashboard/components/EmptyGroupsState.tsx` - Empty state UI (80 lines)
+  - `/web/src/features/dashboard/components/CreateTaskFromGroupModal.tsx` - Task creation modal (140 lines)
+  - `/web/src/features/dashboard/components/MemberListModal.tsx` - Member list with search (240 lines)
+  - `/web/src/features/dashboard/hooks/useMockDashboard.ts` - Mock data hook (110 lines)
+- **Files Refactored:**
+  - `/web/src/features/dashboard/pages/DashboardPage.tsx` - Replaced welcome page with groups grid (180 lines)
+- **Stories Completed:**
+  - ✅ US-024-01: Group Card Component
+  - ✅ US-024-02: Member Avatar Stack Component
+  - ✅ US-024-03: Groups Dashboard Page Container
+  - ✅ US-024-04: Skeleton & Empty States
+  - ✅ US-024-06: Task Creation Modal from Group Card
+  - ✅ US-024-07: Task API Integration (verified existing API)
+  - ✅ US-024-08: Member List Expansion Modal
+- **Pending:** US-024-05 (Accessibility Audit)
+- **Total Lines:** ~1,200 lines of production code
+- **Documentation:** [docs/FR-024/progress.md](docs/FR-024/progress.md), [docs/FR-024/workplan.md](docs/FR-024/workplan.md), [docs/FR-024/design.md](docs/FR-024/design.md)
+
 ## 2025-12-15 (UI Consolidation)
 - Consolidated task forms: Dashboard now uses production `web/src/components/CreateTaskForm.tsx`.
 - Removed old form usage and updated toasts (centralized) with i18n strings.
