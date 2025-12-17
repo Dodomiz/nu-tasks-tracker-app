@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { GroupCardDto } from '@/types/dashboard';
 import MemberAvatarStack from './MemberAvatarStack';
@@ -23,7 +22,6 @@ export default function GroupCard({
   onViewMembers,
 }: GroupCardProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const currentLang = useAppSelector((state) => state.language.current);
   const isAdmin = group.myRole === 'Admin';
   
