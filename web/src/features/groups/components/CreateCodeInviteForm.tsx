@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { ClipboardDocumentIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { useCreateCodeInviteMutation } from '@/features/groups/groupApi';
+import { useTranslation } from 'react-i18next';
 
 interface CreateCodeInviteFormData {
   inviteType: 'any' | 'email';
@@ -14,6 +15,7 @@ interface CreateCodeInviteFormProps {
 }
 
 export default function CreateCodeInviteForm({ groupId }: CreateCodeInviteFormProps) {
+  const { t } = useTranslation();
   const [inviteType, setInviteType] = useState<'any' | 'email'>('any');
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -91,7 +93,7 @@ export default function CreateCodeInviteForm({ groupId }: CreateCodeInviteFormPr
         /* Code Display after generation */
         <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-500 dark:border-green-700 rounded-lg p-6">
           <p className="text-sm text-green-800 dark:text-green-300 font-medium mb-3 text-center">
-            Your invitation code:
+            {t('groups.yourInvitationCode')}
           </p>
           
           {/* Code with Copy Button */}
@@ -115,7 +117,7 @@ export default function CreateCodeInviteForm({ groupId }: CreateCodeInviteFormPr
           {/* Shareable Link */}
           <div className="border-t border-green-300 dark:border-green-700 pt-4">
             <p className="text-xs text-green-800 dark:text-green-300 font-medium mb-2">
-              Or share this link:
+              {t('groups.orShareThisLink')}
             </p>
             <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-3 border border-green-300 dark:border-green-700">
               <code className="flex-1 text-xs font-mono text-gray-700 dark:text-gray-300 break-all">
@@ -136,13 +138,13 @@ export default function CreateCodeInviteForm({ groupId }: CreateCodeInviteFormPr
           </div>
 
           <p className="text-xs text-green-700 dark:text-green-400 mt-3 text-center">
-            Share the code or link with people you want to invite.
+            {t('groups.shareCodeInstructions')}
           </p>
           <button
             onClick={handleCloseCodeDisplay}
             className="mt-4 w-full text-sm text-green-700 dark:text-green-400 hover:text-green-900 dark:hover:text-green-200 underline"
           >
-            Close
+            {t('common.close')}
           </button>
         </div>
       ) : (
@@ -151,7 +153,7 @@ export default function CreateCodeInviteForm({ groupId }: CreateCodeInviteFormPr
           {/* Invite Type Radio Buttons */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Who can use this code?
+              {t('groups.whoCanUseCode')}
             </label>
             <div className="flex gap-4">
               <label className="flex items-center cursor-pointer">
@@ -163,7 +165,7 @@ export default function CreateCodeInviteForm({ groupId }: CreateCodeInviteFormPr
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"
                 />
                 <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                  Anyone with the code
+                  {t('groups.anyoneWithCode')}
                 </span>
               </label>
               <label className="flex items-center cursor-pointer">
@@ -175,7 +177,7 @@ export default function CreateCodeInviteForm({ groupId }: CreateCodeInviteFormPr
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600"
                 />
                 <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                  Specific email only
+                  {t('groups.specificEmailOnly')}
                 </span>
               </label>
             </div>
@@ -188,17 +190,17 @@ export default function CreateCodeInviteForm({ groupId }: CreateCodeInviteFormPr
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                Email Address <span className="text-red-500">*</span>
+                {t('groups.emailAddress')} <span className="text-red-500">*</span>
               </label>
               <input
                 id="email"
                 type="email"
                 {...register('email', {
                   required:
-                    inviteType === 'email' ? 'Email is required' : false,
+                    inviteType === 'email' ? t('groups.emailRequired') : false,
                   pattern: {
                     value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: 'Invalid email format',
+                    message: t('groups.invalidEmailFormat'),
                   },
                 })}
                 placeholder="user@example.com"
@@ -218,7 +220,7 @@ export default function CreateCodeInviteForm({ groupId }: CreateCodeInviteFormPr
             disabled={isLoading}
             className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Generating...' : 'Generate Code'}
+            {isLoading ? t('groups.generating') : t('groups.generateCode')}
           </button>
         </form>
       )}

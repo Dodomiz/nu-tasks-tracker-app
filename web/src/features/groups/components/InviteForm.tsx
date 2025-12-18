@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CheckIcon, ClipboardDocumentIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface InviteFormProps {
   groupId: string;
@@ -12,6 +13,7 @@ interface InviteFormProps {
  * For one-time codes (email-specific or any-user), use Code Invites tab
  */
 export default function InviteForm({ invitationCode }: InviteFormProps) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const invitationUrl = `${window.location.origin}/groups/join/${invitationCode}`;
@@ -35,10 +37,9 @@ export default function InviteForm({ invitationCode }: InviteFormProps) {
         <div className="flex items-start gap-3">
           <InformationCircleIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
           <div className="text-sm text-blue-800 dark:text-blue-300">
-            <p className="font-medium">Public Shareable Link</p>
+            <p className="font-medium">{t('groups.publicShareableLink')}</p>
             <p className="mt-1">
-              This link allows unlimited uses. Anyone with the link can join your group.
-              For one-time codes or email-specific invitations, use the <strong>Code Invites</strong> tab.
+              {t('groups.publicLinkDescription')}
             </p>
           </div>
         </div>
@@ -47,7 +48,7 @@ export default function InviteForm({ invitationCode }: InviteFormProps) {
       {/* Shareable Link Section */}
       <div className="space-y-3">
         <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-          Share this link:
+          {t('groups.shareThisLink')}
         </h4>
         <div className="flex items-center gap-2">
           <input
@@ -63,19 +64,19 @@ export default function InviteForm({ invitationCode }: InviteFormProps) {
             {copied ? (
               <>
                 <CheckIcon className="h-5 w-5" />
-                Copied!
+                {t('groups.copied')}
               </>
             ) : (
               <>
                 <ClipboardDocumentIcon className="h-5 w-5" />
-                Copy
+                {t('groups.copy')}
               </>
             )}
           </button>
         </div>
         <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
           <p className="text-sm text-yellow-800 dark:text-yellow-200">
-            <strong>Note:</strong> This link can be used unlimited times until you delete the group. Maximum 20 members per group.
+            <strong>{t('groups.note')}:</strong> {t('groups.publicLinkNote')}
           </p>
         </div>
       </div>

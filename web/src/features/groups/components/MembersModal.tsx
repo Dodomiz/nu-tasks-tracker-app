@@ -145,7 +145,7 @@ interface MembersModalProps {
 }
 
 export default function MembersModal({ groupId, groupName, invitationCode, myRole, currentUserId, onClose }: MembersModalProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data: members, isLoading, error } = useGetGroupMembersQuery(groupId);
   const [removeMember, { isLoading: isRemoving }] = useRemoveMemberMutation();
   const [promoteMember, { isLoading: isPromoting }] = usePromoteMemberMutation();
@@ -264,7 +264,7 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center justify-between"
                 >
-                  Manage Members — {groupName}
+                  {t('groups.manageMembers')} — {groupName}
                   <button onClick={onClose} className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
                     <XMarkIcon className="h-6 w-6" />
                   </button>
@@ -281,7 +281,7 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
                         }`
                       }
                     >
-                      Members
+                      {t('groups.membersTab')}
                     </Tab>
                     <Tab
                       className={({ selected }) =>
@@ -292,7 +292,7 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
                         }`
                       }
                     >
-                      Public Link
+                      {t('groups.publicLinkTab')}
                     </Tab>
                     {isAdmin && (
                       <Tab
@@ -304,7 +304,7 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
                           }`
                         }
                       >
-                        Code Invites
+                        {t('groups.codeInvitesTab')}
                       </Tab>
                     )}
                   </Tab.List>
@@ -312,19 +312,19 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
                     {/* Members Tab */}
                     <Tab.Panel className="h-full overflow-y-auto">
                       {isLoading ? (
-                        <div className="py-8 text-center text-gray-600 dark:text-gray-300">Loading members…</div>
+                        <div className="py-8 text-center text-gray-600 dark:text-gray-300">{t('groups.loadingMembers')}</div>
                       ) : error ? (
-                        <div className="py-8 text-center text-red-600 dark:text-red-400">Failed to load members.</div>
+                        <div className="py-8 text-center text-red-600 dark:text-red-400">{t('groups.failedToLoadMembers')}</div>
                       ) : members && members.length > 0 ? (
                         <div className="-mx-4 sm:-mx-6">
                           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-gray-50 dark:bg-gray-700">
                               <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Member</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Role</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Joined</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('groups.member')}</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('groups.role')}</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('groups.joined')}</th>
                                 {isAdmin && (
-                                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('groups.actions')}</th>
                                 )}
                               </tr>
                             </thead>
@@ -348,7 +348,7 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
                           </table>
                         </div>
                       ) : (
-                        <div className="py-8 text-center text-gray-600 dark:text-gray-300">No members found.</div>
+                        <div className="py-8 text-center text-gray-600 dark:text-gray-300">{t('groups.noMembersFound')}</div>
                       )}
                     </Tab.Panel>
 
@@ -361,7 +361,7 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
                         />
                       ) : (
                         <div className="py-8 text-center text-gray-600 dark:text-gray-400">
-                          No invitation code available
+                          {t('groups.noInvitationCode')}
                         </div>
                       )}
                     </Tab.Panel>
@@ -389,9 +389,9 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
           isOpen={true}
           onCancel={() => setMemberToRemove(null)}
           onConfirm={handleRemoveMember}
-          title="Remove Member"
-          message={`Are you sure you want to remove ${memberToRemove.name} from ${groupName}? They will lose access to all group tasks.`}
-          confirmText="Remove"
+          title={t('groups.removeMemberTitle')}
+          message={t('groups.removeMemberMessage', { name: memberToRemove.name, groupName })}
+          confirmText={t('groups.remove')}
           confirmButtonClass="bg-red-600 hover:bg-red-700 focus:ring-red-500"
           isLoading={isRemoving}
         />
@@ -403,9 +403,9 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
             isOpen={true}
             onCancel={() => setMemberToPromote(null)}
             onConfirm={handlePromoteMember}
-            title="Promote to Admin"
-            message={`Are you sure you want to promote ${memberToPromote.name} to Admin? They will be able to manage members, invitations, and group settings.`}
-            confirmText="Promote"
+            title={t('groups.promoteToAdminTitle')}
+            message={t('groups.promoteToAdminMessage', { name: memberToPromote.name })}
+            confirmText={t('groups.promote')}
             confirmButtonClass="bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
             isLoading={isPromoting}
           />
@@ -417,9 +417,9 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
           isOpen={true}
           onCancel={() => setMemberToDemote(null)}
           onConfirm={handleDemoteMember}
-            title="Demote to User"
-            message={`Are you sure you want to demote ${memberToDemote.name} to Regular User? They will lose admin privileges.`}
-            confirmText="Demote"
+            title={t('groups.demoteToUserTitle')}
+            message={t('groups.demoteToUserMessage', { name: memberToDemote.name })}
+            confirmText={t('groups.demote')}
             confirmButtonClass="bg-orange-600 hover:bg-orange-700 focus:ring-orange-500"
             isLoading={isDemoting}
           />

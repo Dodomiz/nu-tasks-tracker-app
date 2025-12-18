@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useCreateTaskMutation, type CreateTaskRequest } from '@/app/api/tasksApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { selectCurrentGroup } from '@/features/groups/groupSlice';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   defaultGroupId?: string;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: Props) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [difficulty, setDifficulty] = useState(1);
@@ -76,9 +78,9 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <h3 className="text-xl font-bold tracking-tight">Create & Assign Task</h3>
+            <h3 className="text-xl font-bold tracking-tight">{t('tasks.createAndAssignTask')}</h3>
           </div>
-          <p className="text-indigo-100 text-sm font-medium">Set up a new task and assign it to a team member</p>
+          <p className="text-indigo-100 text-sm font-medium">{t('tasks.createTaskDescription')}</p>
         </div>
       </div>
 
@@ -91,13 +93,13 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
               <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
               </svg>
-              Task Name
+              {t('tasks.taskName')}
             </label>
             <input
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Complete weekly report"
+              placeholder={t('tasks.taskNamePlaceholder')}
               required
             />
           </div>
@@ -107,7 +109,7 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
               <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              Assign To
+              {t('tasks.assignTo')}
             </label>
             <select
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all disabled:opacity-60"
@@ -116,7 +118,7 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
               required
               disabled={!currentGroup?.members || currentGroup.members.length === 0}
             >
-              <option value="">{currentGroup?.members && currentGroup.members.length > 0 ? 'Choose team member...' : 'No members available'}</option>
+              <option value="">{currentGroup?.members && currentGroup.members.length > 0 ? t('tasks.chooseTeamMember') : t('tasks.noMembersAvailable')}</option>
               {currentGroup?.members?.map((m) => (
                 <option key={m.userId} value={m.userId}>
                   {m.firstName} {m.lastName}
@@ -124,7 +126,7 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
               ))}
             </select>
             {(!currentGroup?.members || currentGroup.members.length === 0) && (
-              <p className="text-xs text-gray-500 mt-1">Add members to this group to assign tasks.</p>
+              <p className="text-xs text-gray-500 mt-1">{t('tasks.addMembersToAssign')}</p>
             )}
           </div>
         </div>
@@ -135,14 +137,14 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
             <svg className="w-4 h-4 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
             </svg>
-            Description
+            {t('tasks.description')}
           </label>
           <textarea
             className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 transition-all resize-none"
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Add any additional details or instructions..."
+            placeholder={t('tasks.descriptionPlaceholder')}
           />
         </div>
 
@@ -153,7 +155,7 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
               <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              Difficulty
+              {t('tasks.difficulty')}
             </label>
             <div className="relative">
               <input
@@ -174,7 +176,7 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
               <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              Due Date
+              {t('tasks.dueDate')}
             </label>
             <input
               type="datetime-local"
@@ -190,20 +192,20 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
               <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              Frequency
+              {t('tasks.frequency')}
             </label>
             <select
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/20 transition-all"
               value={frequency}
               onChange={(e) => setFrequency(e.target.value as any)}
             >
-              <option>OneTime</option>
-              <option>Daily</option>
-              <option>Weekly</option>
-              <option>BiWeekly</option>
-              <option>Monthly</option>
-              <option>Quarterly</option>
-              <option>Yearly</option>
+              <option value="OneTime">{t('tasks.oneTime')}</option>
+              <option value="Daily">{t('tasks.daily')}</option>
+              <option value="Weekly">{t('tasks.weekly')}</option>
+              <option value="BiWeekly">{t('tasks.biWeekly')}</option>
+              <option value="Monthly">{t('tasks.monthly')}</option>
+              <option value="Quarterly">{t('tasks.quarterly')}</option>
+              <option value="Yearly">{t('tasks.yearly')}</option>
             </select>
           </div>
         </div>
@@ -216,7 +218,7 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                Task created!
+                {t('tasks.taskCreated')}
               </span>
             )}
             {isError && (
@@ -224,7 +226,7 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
-                {(error as any)?.data?.message || 'Error creating task'}
+                {(error as any)?.data?.message || t('tasks.errorCreatingTask')}
               </span>
             )}
           </div>
@@ -240,14 +242,14 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Creating...
+                {t('tasks.creating')}
               </>
             ) : (
               <>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Create Task
+                {t('tasks.createTask')}
               </>
             )}
           </button>

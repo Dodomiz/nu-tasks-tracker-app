@@ -126,7 +126,7 @@ export default function CreateTaskFromGroupModal({ isOpen, onClose, group }: Pro
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                   </svg>
-                  {t('dashboard.memberCount', { count: group.memberCount, defaultValue: '{{count}} members' })}
+                  {group.memberCount} {t('common.members')}
                 </span>
                 <span className="flex items-center gap-1">
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -136,7 +136,7 @@ export default function CreateTaskFromGroupModal({ isOpen, onClose, group }: Pro
                       clipRule="evenodd"
                     />
                   </svg>
-                  {t('dashboard.taskCount', { count: group.taskCount, defaultValue: '{{count}} tasks' })}
+                  {group.taskCount} {t('common.tasks')}
                 </span>
               </div>
             </div>
