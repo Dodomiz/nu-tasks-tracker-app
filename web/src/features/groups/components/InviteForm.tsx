@@ -11,7 +11,7 @@ interface InviteFormProps {
  * Simplified InviteForm - Shows only public shareable link
  * For one-time codes (email-specific or any-user), use Code Invites tab
  */
-export default function InviteForm({ groupId, invitationCode }: InviteFormProps) {
+export default function InviteForm({ invitationCode }: InviteFormProps) {
   const [copied, setCopied] = useState(false);
 
   const invitationUrl = `${window.location.origin}/groups/join/${invitationCode}`;

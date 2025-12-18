@@ -27,8 +27,7 @@ export default function CreateTaskFromGroupModal({ isOpen, onClose, group }: Pro
         id: group.id,
         name: group.name,
         description: group.description || '',
-        timezone: 'UTC', // Default, not used by form
-        language: 'en', // Default, not used by form
+        category: 'home', // Default, not used by form
         memberCount: group.memberCount,
         myRole: group.myRole === 'Admin' ? 'Admin' : 'RegularUser',
         // Combine admins and recent members for the form

@@ -6,10 +6,11 @@ import type {
   UpdateGroupRequest,
   InviteResponse,
   PromoteMemberRequest,
+  DemoteMemberRequest,
   RemoveMemberRequest,
 } from '@/types/group';
 import type {
-  CreateInviteRequest,
+
   InviteResponse as CodeInviteResponse,
   InvitesListResponse,
   RedeemInviteRequest,
@@ -86,7 +87,10 @@ export const groupApi = apiSlice.injectEndpoints({
         body,
       }),
       transformResponse: (response: any) => response.data || response,
-      invalidatesTags: [{ type: 'Group', id: 'LIST' }],
+      invalidatesTags: [
+        { type: 'Group', id: 'LIST' },
+        { type: 'Group', id: 'DASHBOARD' },
+      ],
     }),
 
     // Update existing group
@@ -100,6 +104,7 @@ export const groupApi = apiSlice.injectEndpoints({
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'Group', id },
         { type: 'Group', id: 'LIST' },
+        { type: 'Group', id: 'DASHBOARD' },
       ],
     }),
 
@@ -121,13 +126,25 @@ export const groupApi = apiSlice.injectEndpoints({
         method: 'POST',
       }),
       transformResponse: (response: any) => response.data || response,
-      invalidatesTags: [{ type: 'Group', id: 'LIST' }],
+      invalidatesTags: [
+        { type: 'Group', id: 'LIST' },
+        { type: 'Group', id: 'DASHBOARD' },
+      ],
     }),
 
     // Promote member to Admin
     promoteMember: builder.mutation<void, PromoteMemberRequest>({
       query: ({ groupId, userId }) => ({
         url: `/groups/${groupId}/members/${userId}/promote`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, { groupId }) => [{ type: 'Group', id: groupId }],
+    }),
+
+    // Demote member to Regular User
+    demoteMember: builder.mutation<void, DemoteMemberRequest>({
+      query: ({ groupId, userId }) => ({
+        url: `/groups/${groupId}/members/${userId}/demote`,
         method: 'POST',
       }),
       invalidatesTags: (_result, _error, { groupId }) => [{ type: 'Group', id: groupId }],
@@ -254,7 +271,10 @@ export const groupApi = apiSlice.injectEndpoints({
         body,
       }),
       transformResponse: (response: any) => response.data || response,
-      invalidatesTags: [{ type: 'Group', id: 'LIST' }],
+      invalidatesTags: [
+        { type: 'Group', id: 'LIST' },
+        { type: 'Group', id: 'DASHBOARD' },
+      ],
     }),
   }),
 });
@@ -267,6 +287,7 @@ export const {
   useInviteMemberMutation,
   useJoinGroupMutation,
   usePromoteMemberMutation,
+  useDemoteMemberMutation,
   useRemoveMemberMutation,
   useGetGroupMembersQuery,
   useGetGroupInvitesQuery,

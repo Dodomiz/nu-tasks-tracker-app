@@ -11,7 +11,9 @@
         "confirm": "Confirm",
         "edit": "Edit",
         "create": "Create",
-        "update": "Update"
+        "update": "Update",
+        "members": "members",
+        "tasks": "tasks"
     },
     "auth": {
         "login": {
@@ -81,13 +83,20 @@
         "title": "Dashboard",
         "welcome": "Welcome, {{name}}!",
         "myTasks": "My Tasks",
+        "myGroups": "My Groups",
+        "manageGroups": "View and manage your group tasks",
+        "loading": "Loading groups",
         "noTasks": "You don't have any tasks yet.",
         "createTask": "Create & Assign Task",
         "taskCreated": "Task created successfully",
         "taskCreateError": "Failed to create task",
         "tasks": "Tasks",
         "completedTasks": "Completed Tasks",
-        "pendingTasks": "Pending Tasks"
+        "pendingTasks": "Pending Tasks",
+        "joinWithCode": "Join Group",
+        "createGroup": "Create Group",
+        "editGroup": "Edit Group",
+        "manageMembers": "Manage Members"
     },
     "settings": {
         "title": "Settings",

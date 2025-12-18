@@ -1,3 +1,5 @@
+import { Dialog } from '@headlessui/react';
+
 interface ConfirmationModalProps {
   isOpen: boolean;
   title: string;
@@ -21,19 +23,16 @@ export default function ConfirmationModal({
   onCancel,
   isLoading = false,
 }: ConfirmationModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <Dialog open={isOpen} onClose={() => !isLoading && onCancel()} className="relative z-[60]">
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-        onClick={!isLoading ? onCancel : undefined}
-      />
+      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" aria-hidden="true" />
 
-      {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+      {/* Container */}
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        {/* Modal Content */}
+        <Dialog.Panel className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             {title}
           </h3>
@@ -42,6 +41,7 @@ export default function ConfirmationModal({
           </p>
           <div className="flex justify-end gap-3">
             <button
+              type="button"
               onClick={onCancel}
               disabled={isLoading}
               className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
@@ -49,7 +49,8 @@ export default function ConfirmationModal({
               {cancelText}
             </button>
             <button
-              onClick={onConfirm}
+              type="button"
+              onClick={() => !isLoading && onConfirm()}
               disabled={isLoading}
               className={`px-4 py-2 text-white rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed ${confirmButtonClass}`}
             >
@@ -78,8 +79,8 @@ export default function ConfirmationModal({
               )}
             </button>
           </div>
-        </div>
+        </Dialog.Panel>
       </div>
-    </div>
+    </Dialog>
   );
 }

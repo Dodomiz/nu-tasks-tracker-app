@@ -346,6 +346,49 @@ public class GroupsController(
     }
 
     /// <summary>
+    /// Demote member to Regular User (Admin only)
+    /// </summary>
+    [HttpPost("{groupId}/members/{userId}/demote")]
+    [RequireGroupAdmin(groupIdParam: "groupId")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DemoteMember(string groupId, string userId)
+    {
+        try
+        {
+            await groupService.DemoteMemberAsync(groupId, userId, UserId);
+            return Ok(ApiResponse<object>.SuccessResponse(new { message = "Member demoted to regular user successfully" }));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<object>.ErrorResponse(
+                "NOT_FOUND",
+                ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<object>.ErrorResponse(
+                "INVALID_OPERATION",
+                ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, ApiResponse<object>.ErrorResponse(
+                "NOT_ADMIN",
+                ex.Message));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error demoting member in group {GroupId}", groupId);
+            return StatusCode(500, ApiResponse<object>.ErrorResponse(
+                "SERVER_ERROR",
+                "An error occurred while demoting the member"));
+        }
+    }
+
+    /// <summary>
     /// Remove member from group (Admin only)
     /// </summary>
     [HttpDelete("{groupId}/members/{userId}")]

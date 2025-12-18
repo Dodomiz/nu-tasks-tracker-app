@@ -1,9 +1,9 @@
 import { Fragment, useState } from 'react';
 import { Dialog, Transition, Tab } from '@headlessui/react';
-import { XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 import InviteForm from './InviteForm';
 import CodeInvitationsTab from './CodeInvitationsTab';
-import { useGetGroupMembersQuery, useRemoveMemberMutation } from '@/features/groups/groupApi';
+import { useGetGroupMembersQuery, useRemoveMemberMutation, usePromoteMemberMutation, useDemoteMemberMutation } from '@/features/groups/groupApi';
 import { useTranslation } from 'react-i18next';
 import { formatDate } from '@/utils/dateFormatter';
 import { toast } from 'react-hot-toast';
@@ -29,12 +29,19 @@ interface MemberRowProps {
   member: Member;
   isAdmin: boolean;
   isRemoving: boolean;
+  isChangingRole: boolean;
+  adminCount: number;
+  currentUserId: string;
   onRemoveClick: (userId: string, firstName: string, lastName: string, role: Role) => void;
+  onPromoteClick: (userId: string, firstName: string, lastName: string) => void;
+  onDemoteClick: (userId: string, firstName: string, lastName: string) => void;
   language: string;
 }
 
-function MemberRow({ member, isAdmin, isRemoving, onRemoveClick, language }: MemberRowProps) {
+function MemberRow({ member, isAdmin, isRemoving, isChangingRole, adminCount, currentUserId, onRemoveClick, onPromoteClick, onDemoteClick, language }: MemberRowProps) {
   const [imageError, setImageError] = useState(false);
+  const isLastAdmin = member.role === 'Admin' && adminCount === 1;
+  const isSelf = member.userId === currentUserId;
 
   return (
     <tr>
@@ -80,14 +87,48 @@ function MemberRow({ member, isAdmin, isRemoving, onRemoveClick, language }: Mem
       </td>
       {isAdmin && (
         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-          <button
-            onClick={() => onRemoveClick(member.userId, member.firstName, member.lastName, member.role)}
-            disabled={isRemoving}
-            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Remove member"
-          >
-            <TrashIcon className="h-5 w-5" />
-          </button>
+          <div className="flex items-center justify-end gap-2">
+            {member.role === 'RegularUser' ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onPromoteClick(member.userId, member.firstName, member.lastName);
+                }}
+                disabled={isChangingRole || isSelf}
+                className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                title={isSelf ? "Cannot change your own role" : "Promote to Admin"}
+                type="button"
+              >
+                <ArrowUpIcon className="h-5 w-5" />
+              </button>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onDemoteClick(member.userId, member.firstName, member.lastName);
+                }}
+                disabled={isChangingRole || isLastAdmin || isSelf}
+                className="text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                title={isSelf ? "Cannot change your own role" : isLastAdmin ? "Cannot demote the last admin" : "Demote to User"}
+                type="button"
+              >
+                <ArrowDownIcon className="h-5 w-5" />
+              </button>
+            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveClick(member.userId, member.firstName, member.lastName, member.role);
+              }}
+              disabled={isRemoving}
+              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Remove member"
+            >
+              <TrashIcon className="h-5 w-5" />
+            </button>
+          </div>
         </td>
       )}
     </tr>
@@ -107,17 +148,19 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
   const { i18n } = useTranslation();
   const { data: members, isLoading, error } = useGetGroupMembersQuery(groupId);
   const [removeMember, { isLoading: isRemoving }] = useRemoveMemberMutation();
+  const [promoteMember, { isLoading: isPromoting }] = usePromoteMemberMutation();
+  const [demoteMember, { isLoading: isDemoting }] = useDemoteMemberMutation();
   const [memberToRemove, setMemberToRemove] = useState<{ userId: string; name: string } | null>(null);
+  const [memberToPromote, setMemberToPromote] = useState<{ userId: string; name: string } | null>(null);
+  const [memberToDemote, setMemberToDemote] = useState<{ userId: string; name: string } | null>(null);
 
   const isAdmin = myRole === 'Admin';
   const adminCount = members?.filter(m => m.role === 'Admin').length || 0;
 
-  const canRemoveMember = (userId: string, role: Role) => {
+  const canRemoveMember = (_userId: string, role: Role) => {
     // Cannot remove the last admin
-    if (role === 'Admin' && adminCount === 1) {
-      return false;
-    }
-    return true;
+    return !(role === 'Admin' && adminCount === 1);
+
   };
 
   const handleRemoveMember = async () => {
@@ -144,6 +187,50 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
       return;
     }
     setMemberToRemove({ userId, name: `${firstName} ${lastName}` });
+  };
+
+  const handlePromoteClick = (userId: string, firstName: string, lastName: string) => {
+    setMemberToPromote({ userId, name: `${firstName} ${lastName}` });
+  };
+
+  const handleDemoteClick = (userId: string, firstName: string, lastName: string) => {
+    setMemberToDemote({ userId, name: `${firstName} ${lastName}` });
+  };
+
+  const handlePromoteMember = async () => {
+    if (!memberToPromote) return;
+
+    try {
+      await promoteMember({
+        groupId,
+        userId: memberToPromote.userId,
+      }).unwrap();
+      
+      toast.success(`${memberToPromote.name} promoted to Admin`);
+      setMemberToPromote(null);
+    } catch (err: any) {
+      const errorMessage = err?.data?.message || 'Failed to promote member';
+      toast.error(errorMessage);
+      setMemberToPromote(null);
+    }
+  };
+
+  const handleDemoteMember = async () => {
+    if (!memberToDemote) return;
+
+    try {
+      await demoteMember({
+        groupId,
+        userId: memberToDemote.userId,
+      }).unwrap();
+      
+      toast.success(`${memberToDemote.name} demoted to Regular User`);
+      setMemberToDemote(null);
+    } catch (err: any) {
+      const errorMessage = err?.data?.message || 'Failed to demote member';
+      toast.error(errorMessage);
+      setMemberToDemote(null);
+    }
   };
 
   return (
@@ -248,7 +335,12 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
                                   member={m}
                                   isAdmin={isAdmin}
                                   isRemoving={isRemoving}
+                                  isChangingRole={isPromoting || isDemoting}
+                                  adminCount={adminCount}
+                                  currentUserId={currentUserId}
                                   onRemoveClick={handleRemoveClick}
+                                  onPromoteClick={handlePromoteClick}
+                                  onDemoteClick={handleDemoteClick}
                                   language={i18n.language}
                                 />
                               ))}
@@ -295,7 +387,7 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
       {memberToRemove && (
         <ConfirmationModal
           isOpen={true}
-          onClose={() => setMemberToRemove(null)}
+          onCancel={() => setMemberToRemove(null)}
           onConfirm={handleRemoveMember}
           title="Remove Member"
           message={`Are you sure you want to remove ${memberToRemove.name} from ${groupName}? They will lose access to all group tasks.`}
@@ -303,6 +395,34 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
           confirmButtonClass="bg-red-600 hover:bg-red-700 focus:ring-red-500"
           isLoading={isRemoving}
         />
+      )}
+
+      {/* Promote Member Confirmation */}
+      {memberToPromote && (
+        <ConfirmationModal
+            isOpen={true}
+            onCancel={() => setMemberToPromote(null)}
+            onConfirm={handlePromoteMember}
+            title="Promote to Admin"
+            message={`Are you sure you want to promote ${memberToPromote.name} to Admin? They will be able to manage members, invitations, and group settings.`}
+            confirmText="Promote"
+            confirmButtonClass="bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+            isLoading={isPromoting}
+          />
+      )}
+
+      {/* Demote Member Confirmation */}
+      {memberToDemote && (
+        <ConfirmationModal
+          isOpen={true}
+          onCancel={() => setMemberToDemote(null)}
+          onConfirm={handleDemoteMember}
+            title="Demote to User"
+            message={`Are you sure you want to demote ${memberToDemote.name} to Regular User? They will lose admin privileges.`}
+            confirmText="Demote"
+            confirmButtonClass="bg-orange-600 hover:bg-orange-700 focus:ring-orange-500"
+            isLoading={isDemoting}
+          />
       )}
     </Transition>
   );

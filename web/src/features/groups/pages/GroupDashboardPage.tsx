@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useGetGroupQuery, usePromoteMemberMutation, useRemoveMemberMutation } from '@/features/groups/groupApi';
+import { useGetGroupQuery, usePromoteMemberMutation, useRemoveMemberMutation, useUpdateGroupMutation } from '@/features/groups/groupApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { selectCurrentUser } from '@/features/auth/authSlice';
 import { formatDate } from '@/utils/dateFormatter';
@@ -9,6 +9,7 @@ import MembersModal from '../components/MembersModal';
 import GroupTasksPanel from '../components/GroupTasksPanel';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { toast } from 'react-hot-toast';
+import { UpdateGroupRequest } from '@/types/group';
 
 interface ConfirmAction {
   type: 'promote' | 'remove';
@@ -24,6 +25,13 @@ export default function GroupDashboardPage() {
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
   const [isTasksPanelOpen, setIsTasksPanelOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<UpdateGroupRequest>({
+    name: '',
+    description: '',
+    avatarUrl: '',
+    category: ''
+  });
 
   const { data: group, isLoading, error } = useGetGroupQuery(groupId!, {
     skip: !groupId,
@@ -34,6 +42,7 @@ export default function GroupDashboardPage() {
 
   const [promoteMember, { isLoading: isPromoting }] = usePromoteMemberMutation();
   const [removeMember, { isLoading: isRemoving }] = useRemoveMemberMutation();
+  const [updateGroup, { isLoading: isUpdating }] = useUpdateGroupMutation();
 
   const handlePromoteMember = async () => {
     if (!confirmAction || !groupId) return;
@@ -71,6 +80,44 @@ export default function GroupDashboardPage() {
     }
   };
 
+  const handleStartEdit = () => {
+    if (!group) return;
+    setEditForm({
+      name: group.name,
+      description: group.description || '',
+      avatarUrl: group.avatarUrl || '',
+      category: group.category
+    });
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditForm({
+      name: '',
+      description: '',
+      avatarUrl: '',
+      category: ''
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!groupId) return;
+
+    try {
+      await updateGroup({
+        id: groupId,
+        body: editForm
+      }).unwrap();
+      
+      toast.success('Group updated successfully');
+      setIsEditing(false);
+    } catch (err: any) {
+      const errorMessage = err?.data?.message || 'Failed to update group';
+      toast.error(errorMessage);
+    }
+  };
+
   const canRemoveMember = (member: any) => {
     if (!group) return false;
     
@@ -78,11 +125,9 @@ export default function GroupDashboardPage() {
     const isCurrentUser = member.userId === currentUser?.id;
     const adminCount = group.members?.filter(m => m.role === 'Admin').length || 0;
     
-    if (isCurrentUser && adminCount === 1) {
-      return false;
-    }
+    return !(isCurrentUser && adminCount === 1);
     
-    return true;
+
   };
 
   if (isLoading) {
@@ -128,65 +173,153 @@ export default function GroupDashboardPage() {
         <div className="max-w-6xl mx-auto">
           {/* Back Button */}
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/dashboard')}
             className="mb-4 flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Back
+            Back to Dashboard
           </button>
 
           {/* Group Header */}
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-4">
-                {group.avatarUrl && (
-                  <img
-                    src={group.avatarUrl}
-                    alt={group.name}
-                    className="w-16 h-16 rounded-full"
-                  />
-                )}
+            {isEditing ? (
+              <div className="space-y-4">
+                {/* Edit Mode */}
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {group.name}
-                  </h1>
-                  {group.description && (
-                    <p className="mt-2 text-gray-600 dark:text-gray-400">
-                      {group.description}
-                    </p>
-                  )}
-                  <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                    <span>
-                      {group.memberCount} {group.memberCount === 1 ? 'member' : 'members'}
-                    </span>
-                    <span>•</span>
-                    <span>Created {formatDate(new Date(group.createdAt), i18n.language)}</span>
-                    <span>•</span>
-                    <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded">
-                      {group.myRole}
-                    </span>
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Group Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="Enter group name"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="Enter group description"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Avatar URL
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.avatarUrl}
+                    onChange={(e) => setEditForm({ ...editForm, avatarUrl: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="https://example.com/avatar.jpg"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={editForm.category}
+                    onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="home">🏠 Home</option>
+                    <option value="work">💼 Work</option>
+                    <option value="school">📚 School</option>
+                    <option value="personal">👤 Personal</option>
+                    <option value="hobbies">🎨 Hobbies</option>
+                    <option value="fitness">💪 Fitness</option>
+                    <option value="finance">💰 Finance</option>
+                  </select>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button
+                    onClick={handleSaveEdit}
+                    disabled={isUpdating || !editForm.name.trim()}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-md font-medium"
+                  >
+                    {isUpdating ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    disabled={isUpdating}
+                    className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md font-medium"
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setIsTasksPanelOpen(true)}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium"
-                >
-                  View Tasks
-                </button>
-                {isAdmin && (
+            ) : (
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                  {group.avatarUrl && (
+                    <img
+                      src={group.avatarUrl}
+                      alt={group.name}
+                      className="w-16 h-16 rounded-full"
+                    />
+                  )}
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {group.name}
+                    </h1>
+                    {group.description && (
+                      <p className="mt-2 text-gray-600 dark:text-gray-400">
+                        {group.description}
+                      </p>
+                    )}
+                    <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                      <span>
+                        {group.memberCount} {group.memberCount === 1 ? 'member' : 'members'}
+                      </span>
+                      <span>•</span>
+                      <span>Created {formatDate(new Date(group.createdAt), i18n.language)}</span>
+                      <span>•</span>
+                      <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded">
+                        {group.myRole}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
                   <button
-                    onClick={() => setIsMembersModalOpen(true)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
+                    onClick={() => setIsTasksPanelOpen(true)}
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium"
                   >
-                    Manage Members
+                    View Tasks
                   </button>
-                )}
+                  {isAdmin && (
+                    <>
+                      <button
+                        onClick={handleStartEdit}
+                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md font-medium"
+                      >
+                        Edit Group
+                      </button>
+                      <button
+                        onClick={() => setIsMembersModalOpen(true)}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
+                      >
+                        Manage Members
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Members List */}
@@ -307,16 +440,12 @@ export default function GroupDashboardPage() {
             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Timezone
+                  Category
                 </dt>
-                <dd className="mt-1 text-sm text-gray-900 dark:text-white">
-                  {group.timezone}
+                <dd className="mt-1 text-sm text-gray-900 dark:text-white capitalize">
+                  {group.category}
                 </dd>
               </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Language
-                </dt>
 
       {/* Confirmation Modal */}
       {confirmAction && (
@@ -339,10 +468,6 @@ export default function GroupDashboardPage() {
           isLoading={isPromoting || isRemoving}
         />
       )}
-                <dd className="mt-1 text-sm text-gray-900 dark:text-white">
-                  {group.language === 'en' ? '🇺🇸 English' : '🇮🇱 עברית'}
-                </dd>
-              </div>
               {isAdmin && group.invitationCode && (
                 <div className="sm:col-span-2">
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">

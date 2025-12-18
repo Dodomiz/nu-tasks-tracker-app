@@ -1,3 +1,120 @@
+## 2025-01-XX (Group Member Role Management - COMPLETE ✅)
+- **Goal:** Allow group admins to promote members to admin or demote admins to regular users
+- **Backend Changes:**
+  - Added `DemoteMemberAsync` method to IGroupService and GroupService
+  - Business logic: Validates requesting user is admin, prevents demoting last admin, updates role to RegularUser
+  - Added POST `/groups/{groupId}/members/{userId}/demote` endpoint in GroupsController
+  - Authorization via `[RequireGroupAdmin]` attribute
+  - Error handling: NOT_FOUND, INVALID_OPERATION (last admin), NOT_ADMIN, SERVER_ERROR
+- **Frontend Changes:**
+  - Added `DemoteMemberRequest` type interface (groupId, userId)
+  - Added `demoteMember` RTK Query mutation with cache invalidation
+  - Updated MembersModal to show role toggle buttons:
+    * RegularUser members show "Promote to Admin" button (blue up arrow)
+    * Admin members show "Demote to User" button (orange down arrow)
+    * Last admin demote button is disabled with tooltip
+    * Users cannot change their own role (buttons disabled with "Cannot change your own role" tooltip)
+  - Added confirmation modals for both promote and demote actions
+  - Import icons: ArrowUpIcon, ArrowDownIcon from heroicons
+  - Fixed button click handlers: Added event.stopPropagation() to prevent table row click interference
+  - Self-role protection: Buttons disabled when viewing own user profile
+- **Backend Files Modified (3):**
+  - `backend/Features/Groups/Services/IGroupService.cs` - Added DemoteMemberAsync signature
+  - `backend/Features/Groups/Services/GroupService.cs` - Full implementation with last-admin protection
+  - `backend/Features/Groups/Controllers/GroupsController.cs` - Added POST /demote endpoint
+- **Frontend Files Modified (3):**
+  - `web/src/types/group.ts` - Added DemoteMemberRequest interface
+  - `web/src/features/groups/groupApi.ts` - Added demoteMember mutation and exported hook
+  - `web/src/features/groups/components/MembersModal.tsx` - Updated UI with role toggle buttons, confirmations, and click handlers
+- **Key Features:**
+  - Bidirectional role management (promote AND demote)
+  - Last admin protection prevents orphaned groups
+  - Self-role protection prevents users from changing own role
+  - Event propagation handling fixes button click issues
+  - Confirmation modals with clear messaging
+  - Loading states during role changes
+  - Toast notifications for success/error
+  - Cache invalidation refreshes member list automatically
+- **Bug Fix:** Arrow buttons not working - Fixed by adding `e.stopPropagation()` to button onClick handlers and preventing self-role changes
+- **Compilation:** ✅ Backend API compiles, Frontend has pre-existing unrelated test config errors
+
+## 2025-01-XX (RTK Query Cache Invalidation Fix - COMPLETE ✅)
+- **Issue:** After creating a group, navigating back to dashboard didn't show the new group until page refresh
+- **Root Cause:** Dashboard uses `getDashboard` query with `DASHBOARD` tag, but `createGroup` mutation only invalidated `LIST` tag
+- **Solution:** Updated all group-modifying mutations to invalidate both `LIST` and `DASHBOARD` tags for proper cache synchronization
+- **Mutations Fixed (4):**
+  - `createGroup` - Now invalidates `['LIST', 'DASHBOARD']`
+  - `updateGroup` - Now invalidates `[specific group, 'LIST', 'DASHBOARD']`
+  - `joinGroup` - Now invalidates `['LIST', 'DASHBOARD']`
+  - `redeemCodeInvite` - Now invalidates `['LIST', 'DASHBOARD']`
+- **Files Modified (1):**
+  - `web/src/features/groups/groupApi.ts` - Updated invalidatesTags for 4 mutations
+- **RTK Query Architecture:**
+  - Dashboard page uses `useGetDashboardQuery` → provides tag `{ type: 'Group', id: 'DASHBOARD' }`
+  - Groups list uses `getMyGroups` → provides tag `{ type: 'Group', id: 'LIST' }`
+  - Mutations must invalidate all relevant tags to trigger refetch
+- **Result:** ✅ Creating/joining/updating groups now instantly updates dashboard without manual refresh
+- **Compilation:** ✅ Frontend compiles successfully
+
+## 2025-01-XX (Group Dashboard Enhancements - COMPLETE ✅)
+- **Goal:** Improve group details page navigation and enable inline editing
+- **Changes:**
+  - Fixed back button to navigate to `/dashboard` instead of browser history
+  - Added inline edit mode for all group fields (name, description, avatarUrl, category)
+  - Edit mode only visible to admins with "Edit Group" button
+  - Form includes Save/Cancel buttons with loading states
+  - Category dropdown with emoji labels (home, work, school, personal, hobbies, fitness, finance)
+  - Real-time updates via RTK Query mutation
+  - Toast notifications for success/error feedback
+- **Frontend Files Modified (1):**
+  - `web/src/features/groups/pages/GroupDashboardPage.tsx` - Added edit state, handlers, and conditional UI
+- **Features Added:**
+  - Inline editing toggle (isEditing state)
+  - Edit form with controlled inputs for all fields
+  - handleStartEdit: Populates form with current group data
+  - handleSaveEdit: Calls useUpdateGroupMutation with validation
+  - handleCancelEdit: Resets form and exits edit mode
+- **UX Improvements:**
+  - Back button text changed to "Back to Dashboard" for clarity
+  - Edit button appears next to "Manage Members" for admins
+  - Fields disabled during save operation
+  - Save button disabled if name is empty
+- **Compilation:** ✅ Frontend compiles successfully
+
+## 2025-01-XX (Create Group Simplification - COMPLETE ✅)
+- **Goal:** Simplify group creation UX by removing unnecessary fields and adding categorization
+- **Changes:**
+  - Removed language selection field (rely on i18n)
+  - Removed timezone selection field (use browser locale, store UTC)
+  - Added category dropdown with 8 predefined options (home, work, school, personal, hobbies, fitness, finance, custom)
+  - Added custom category text input with validation (required, max 30 chars)
+- **Frontend Files Modified (8):**
+  - `web/src/features/groups/pages/CreateGroupPage.tsx` - Refactored form (removed 2 fields, added category)
+  - `web/src/features/groups/pages/GroupDashboardPage.tsx` - Updated to display category
+  - `web/src/types/group.ts` - Updated interfaces (CreateGroupRequest, UpdateGroupRequest, Group)
+  - `web/src/features/groups/__tests__/groupSlice.test.ts` - Updated mock data
+  - `web/src/features/dashboard/components/CreateTaskFromGroupModal.tsx` - Updated mock group
+  - `web/src/features/groups/components/InviteForm.tsx` - Removed unused parameter
+  - `web/src/features/groups/components/MembersModal.tsx` - Code cleanup
+  - `web/src/features/groups/groupApi.ts` - Removed unused import
+- **Backend Files Modified (4):**
+  - `backend/src/TasksTracker.Api/Features/Groups/Models/GroupModels.cs` - Updated DTOs with category field, validation [StringLength(30)]
+  - `backend/src/TasksTracker.Api/Core/Domain/Group.cs` - BSON mapping updated: `[BsonElement("category")]`, default "home"
+  - `backend/src/TasksTracker.Api/Features/Groups/Extensions/GroupMappingExtensions.cs` - Updated all 3 mappings (ToGroupResponse, ToGroup, UpdateFrom)
+  - `backend/tests/TasksTracker.Api.Tests/Groups/GroupServiceTests.cs` - Updated test data with category field
+- **Database Model:**
+  - ✅ MongoDB Group document now has `category` field with default "home"
+  - ✅ Removed `timezone` and `language` fields from BSON mapping
+  - ✅ No index changes needed (no indexes on removed fields)
+  - ✅ Backward compatible: existing groups will use default, new groups will have category
+- **Verification:**
+  - ✅ Frontend compiles successfully
+  - ✅ Backend API compiles successfully
+  - ✅ No references to language/timezone in Group-related code
+  - ✅ Category field properly validated (required, max 30 chars)
+  - ✅ All mapping layers updated (Controller → Service → Repository → MongoDB)
+- **Documentation:** [docs/create-group-simplification.md](docs/create-group-simplification.md)
+
 ## 2025-12-17 (FR-026: Code-Based Invitations - COMPLETE ✅)
 - **Epic:** Group Member Invitation System (Code-Based)
 - **Status:** 100% complete (21 of 21 stories done)

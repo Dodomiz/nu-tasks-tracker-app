@@ -7,7 +7,7 @@ import { addGroup, setCurrentGroup } from '@/features/groups/groupSlice';
 import type { CreateGroupRequest } from '@/types/group';
 
 export default function CreateGroupPage() {
-  const { i18n } = useTranslation();
+  useTranslation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [createGroup, { isLoading }] = useCreateGroupMutation();
@@ -15,9 +15,10 @@ export default function CreateGroupPage() {
   const [formData, setFormData] = useState<CreateGroupRequest>({
     name: '',
     description: '',
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    language: (i18n.language as 'en' | 'he') || 'en',
+    category: 'home',
   });
+
+  const [customCategory, setCustomCategory] = useState('');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -36,6 +37,12 @@ export default function CreateGroupPage() {
       newErrors.description = 'Description must not exceed 500 characters';
     }
 
+    if (formData.category === 'custom' && !customCategory.trim()) {
+      newErrors.category = 'Custom category is required';
+    } else if (formData.category === 'custom' && customCategory.length > 30) {
+      newErrors.category = 'Custom category must not exceed 30 characters';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -48,7 +55,12 @@ export default function CreateGroupPage() {
     }
 
     try {
-      const result = await createGroup(formData).unwrap();
+      // Prepare final payload with custom category if selected
+      const payload = {
+        ...formData,
+        category: formData.category === 'custom' ? customCategory : formData.category,
+      };
+      const result = await createGroup(payload).unwrap();
       dispatch(addGroup(result));
       dispatch(setCurrentGroup(result.id));
       navigate(`/groups/${result.id}/dashboard`);
@@ -71,12 +83,16 @@ export default function CreateGroupPage() {
     }
   };
 
-  // Get available timezones
-  const timezones: string[] = (Intl as any).supportedValuesOf?.('timeZone') || [
-    'America/New_York',
-    'Europe/London',
-    'Asia/Jerusalem',
-    'UTC',
+  // Predefined categories
+  const categories = [
+    { value: 'home', label: '🏠 Home' },
+    { value: 'work', label: '💼 Work' },
+    { value: 'school', label: '📚 School' },
+    { value: 'personal', label: '👤 Personal' },
+    { value: 'hobbies', label: '🎨 Hobbies' },
+    { value: 'fitness', label: '💪 Fitness' },
+    { value: 'finance', label: '💰 Finance' },
+    { value: 'custom', label: '✏️ Custom' },
   ];
 
   return (
@@ -148,48 +164,80 @@ export default function CreateGroupPage() {
               </p>
             </div>
 
-            {/* Timezone */}
+            {/* Category */}
             <div>
               <label
-                htmlFor="timezone"
+                htmlFor="category"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
-                Timezone *
+                Category *
               </label>
               <select
-                id="timezone"
-                value={formData.timezone}
-                onChange={(e) => handleInputChange('timezone', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                id="category"
+                value={formData.category}
+                onChange={(e) => {
+                  handleInputChange('category', e.target.value);
+                  if (e.target.value !== 'custom') {
+                    setCustomCategory('');
+                  }
+                }}
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
+                  errors.category
+                    ? 'border-red-500 dark:border-red-400'
+                    : 'border-gray-300 dark:border-gray-600'
+                }`}
                 required
               >
-                {timezones.map((tz: string) => (
-                  <option key={tz} value={tz}>
-                    {tz}
+                {categories.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
                   </option>
                 ))}
               </select>
+              {errors.category && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.category}
+                </p>
+              )}
             </div>
 
-            {/* Language */}
-            <div>
-              <label
-                htmlFor="language"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Group Language *
-              </label>
-              <select
-                id="language"
-                value={formData.language}
-                onChange={(e) => handleInputChange('language', e.target.value as 'en' | 'he')}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                required
-              >
-                <option value="en">🇺🇸 English</option>
-                <option value="he">🇮🇱 עברית</option>
-              </select>
-            </div>
+            {/* Custom Category Input */}
+            {formData.category === 'custom' && (
+              <div>
+                <label
+                  htmlFor="customCategory"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Custom Category Name *
+                </label>
+                <input
+                  type="text"
+                  id="customCategory"
+                  value={customCategory}
+                  onChange={(e) => {
+                    setCustomCategory(e.target.value);
+                    if (errors.category) {
+                      setErrors((prev) => {
+                        const newErrors = { ...prev };
+                        delete newErrors.category;
+                        return newErrors;
+                      });
+                    }
+                  }}
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
+                    errors.category
+                      ? 'border-red-500 dark:border-red-400'
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                  placeholder="e.g., Travel, Projects"
+                  maxLength={30}
+                  required
+                />
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {customCategory.length} / 30 characters
+                </p>
+              </div>
+            )}
 
             {/* Avatar Placeholder */}
             <div>

@@ -16,8 +16,7 @@ public static class GroupMappingExtensions
             Name = group.Name,
             Description = group.Description,
             AvatarUrl = group.AvatarUrl,
-            Timezone = group.Timezone,
-            Language = group.Language,
+            Category = group.Category,
             InvitationCode = isAdmin ? group.InvitationCode : null,
             MemberCount = group.Members.Count,
             Members = isAdmin ? group.Members.Select(m => m.ToMemberDto()).ToList() : null,
@@ -46,8 +45,7 @@ public static class GroupMappingExtensions
             Name = request.Name,
             Description = request.Description,
             AvatarUrl = request.AvatarUrl,
-            Timezone = request.Timezone,
-            Language = request.Language,
+            Category = request.Category,
             InvitationCode = invitationCode,
             CreatedBy = userId,
             Members = new List<GroupMember>
@@ -75,8 +73,7 @@ public static class GroupMappingExtensions
         group.Name = request.Name;
         group.Description = request.Description;
         group.AvatarUrl = request.AvatarUrl;
-        group.Timezone = request.Timezone;
-        group.Language = request.Language;
+        group.Category = request.Category;
         group.UpdatedAt = DateTime.UtcNow;
     }
 }

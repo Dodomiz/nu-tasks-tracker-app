@@ -11,7 +11,9 @@
         "confirm": "אישור",
         "edit": "ערוך",
         "create": "צור",
-        "update": "עדכן"
+        "update": "עדכן",
+        "members": "חברים",
+        "tasks": "משימות"
     },
     "auth": {
         "login": {
@@ -81,13 +83,20 @@
         "title": "לוח בקרה",
         "welcome": "שלום, {{name}}!",
         "myTasks": "המשימות שלי",
+        "myGroups": "הקבוצות שלי",
+        "manageGroups": "צפה ונהל את משימות הקבוצה",
+        "loading": "טוען קבוצות",
         "noTasks": "אין לך משימות עדיין.",
         "createTask": "צור משימה חדשה",
         "taskCreated": "המשימה נוצרה בהצלחה",
         "taskCreateError": "יצירת המשימה נכשלה",
         "tasks": "משימות",
         "completedTasks": "משימות שהושלמו",
-        "pendingTasks": "משימות ממתינות"
+        "pendingTasks": "משימות ממתינות",
+        "joinWithCode": "הצטרף לקבוצה",
+        "createGroup": "צור קבוצה",
+        "editGroup": "ערוך קבוצה",
+        "manageMembers": "נהל חברים"
     },
     "settings": {
         "title": "הגדרות",

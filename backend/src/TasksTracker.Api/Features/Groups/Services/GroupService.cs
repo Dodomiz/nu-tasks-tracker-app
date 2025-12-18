@@ -223,6 +223,50 @@ public class GroupService(
             targetUserId, groupId, requestingUserId);
     }
 
+    public async Task DemoteMemberAsync(string groupId, string targetUserId, string requestingUserId)
+    {
+        var group = await groupRepository.GetByIdAsync(groupId);
+        
+        if (group == null)
+        {
+            throw new KeyNotFoundException($"Group {groupId} not found");
+        }
+
+        // Check if requesting user is admin
+        var requestingMember = group.Members.FirstOrDefault(m => m.UserId == requestingUserId);
+        if (requestingMember?.Role != GroupRole.Admin)
+        {
+            throw new UnauthorizedAccessException("Only admins can demote members");
+        }
+
+        // Find target member
+        var targetMember = group.Members.FirstOrDefault(m => m.UserId == targetUserId);
+        if (targetMember == null)
+        {
+            throw new KeyNotFoundException($"Member {targetUserId} not found in group {groupId}");
+        }
+
+        // Check if already regular user
+        if (targetMember.Role == GroupRole.RegularUser)
+        {
+            throw new InvalidOperationException("Member is already a regular user");
+        }
+
+        // Check if this is the last admin
+        var adminCount = group.Members.Count(m => m.Role == GroupRole.Admin);
+        if (adminCount == 1 && targetMember.Role == GroupRole.Admin)
+        {
+            throw new InvalidOperationException("Cannot demote the last admin. Promote another member first.");
+        }
+
+        // Demote to regular user
+        targetMember.Role = GroupRole.RegularUser;
+        await groupRepository.UpdateAsync(group);
+
+        logger.LogInformation("User {TargetUserId} demoted to regular user in group {GroupId} by {RequestingUserId}", 
+            targetUserId, groupId, requestingUserId);
+    }
+
     public async Task RemoveMemberAsync(string groupId, string targetUserId, string requestingUserId)
     {
         var group = await groupRepository.GetByIdAsync(groupId);

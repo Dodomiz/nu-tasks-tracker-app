@@ -18,11 +18,8 @@ public class Group
     [BsonElement("avatarUrl")]
     public string? AvatarUrl { get; set; }
     
-    [BsonElement("timezone")]
-    public string Timezone { get; set; } = "UTC";
-    
-    [BsonElement("language")]
-    public string Language { get; set; } = "en";
+    [BsonElement("category")]
+    public string Category { get; set; } = "home";
     
     [BsonElement("invitationCode")]
     public string InvitationCode { get; set; } = string.Empty;

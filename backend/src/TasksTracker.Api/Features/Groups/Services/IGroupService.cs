@@ -12,6 +12,7 @@ public interface IGroupService
     Task DeleteGroupAsync(string groupId, string userId);
     Task<GroupResponse> JoinGroupByInvitationAsync(string invitationCode, string userId);
     Task PromoteMemberAsync(string groupId, string targetUserId, string requestingUserId);
+    Task DemoteMemberAsync(string groupId, string targetUserId, string requestingUserId);
     Task RemoveMemberAsync(string groupId, string targetUserId, string requestingUserId);
         Task<List<MemberDto>> GetGroupMembersAsync(string groupId, string userId);
 }

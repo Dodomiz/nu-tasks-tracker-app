@@ -14,11 +14,8 @@ public class CreateGroupRequest
     public string? AvatarUrl { get; set; }
     
     [Required]
-    public string Timezone { get; set; } = "UTC";
-    
-    [Required]
-    [RegularExpression("^(en|he)$")]
-    public string Language { get; set; } = "en";
+    [StringLength(30, MinimumLength = 1)]
+    public string Category { get; set; } = "home";
 }
 
 public class UpdateGroupRequest
@@ -33,11 +30,8 @@ public class UpdateGroupRequest
     public string? AvatarUrl { get; set; }
     
     [Required]
-    public string Timezone { get; set; } = "UTC";
-    
-    [Required]
-    [RegularExpression("^(en|he)$")]
-    public string Language { get; set; } = "en";
+    [StringLength(30, MinimumLength = 1)]
+    public string Category { get; set; } = "home";
 }
 
 public class InviteMemberRequest
@@ -53,8 +47,7 @@ public class GroupResponse
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? AvatarUrl { get; set; }
-    public string Timezone { get; set; } = string.Empty;
-    public string Language { get; set; } = string.Empty;
+    public string Category { get; set; } = string.Empty;
     public string? InvitationCode { get; set; } // Only visible to Admins
     public int MemberCount { get; set; }
     public List<MemberDto>? Members { get; set; } // Full list only for Admins

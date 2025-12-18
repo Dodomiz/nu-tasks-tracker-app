@@ -29,8 +29,7 @@ public class GroupServiceTests
         {
             Name = "My Group",
             Description = "Desc",
-            Timezone = "UTC",
-            Language = "en"
+            Category = "work"
         };
 
         Group? captured = null;
@@ -62,7 +61,7 @@ public class GroupServiceTests
     public async Task CreateGroupAsync_InvalidName_Throws(string badName)
     {
         var sut = CreateSut();
-        var request = new CreateGroupRequest { Name = badName, Description = "", Timezone = "UTC", Language = "en" };
+        var request = new CreateGroupRequest { Name = badName, Description = "", Category = "home" };
 
         var act = async () => await sut.CreateGroupAsync(request, "user-1");
 
@@ -98,7 +97,7 @@ public class GroupServiceTests
         _groupRepo.Setup(r => r.GetByIdAsync("g1")).ReturnsAsync(group);
         var sut = CreateSut();
 
-        var act = async () => await sut.UpdateGroupAsync("g1", new UpdateGroupRequest { Name = "New", Description = "", Timezone = "UTC", Language = "en" }, "user-1");
+        var act = async () => await sut.UpdateGroupAsync("g1", new UpdateGroupRequest { Name = "New", Description = "", Category = "personal" }, "user-1");
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>();
     }

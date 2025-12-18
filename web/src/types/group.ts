@@ -16,8 +16,7 @@ export interface Group {
   name: string;
   description?: string;
   avatarUrl?: string;
-  timezone: string;
-  language: 'en' | 'he';
+  category: string;
   invitationCode?: string; // Only visible to Admins
   memberCount: number;
   members?: Member[]; // Full list only for Admins
@@ -29,16 +28,14 @@ export interface CreateGroupRequest {
   name: string;
   description?: string;
   avatarUrl?: string;
-  timezone: string;
-  language: 'en' | 'he';
+  category: string;
 }
 
 export interface UpdateGroupRequest {
   name: string;
   description?: string;
   avatarUrl?: string;
-  timezone: string;
-  language: 'en' | 'he';
+  category: string;
 }
 
 export interface InviteMemberRequest {
@@ -56,6 +53,11 @@ export interface GroupsResponse {
 }
 
 export interface PromoteMemberRequest {
+  groupId: string;
+  userId: string;
+}
+
+export interface DemoteMemberRequest {
   groupId: string;
   userId: string;
 }
