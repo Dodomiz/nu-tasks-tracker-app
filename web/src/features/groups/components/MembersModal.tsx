@@ -2,7 +2,6 @@ import { Fragment, useState } from 'react';
 import { Dialog, Transition, Tab } from '@headlessui/react';
 import { XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
 import InviteForm from './InviteForm';
-import InvitesTab from './InvitesTab';
 import CodeInvitationsTab from './CodeInvitationsTab';
 import { useGetGroupMembersQuery, useRemoveMemberMutation } from '@/features/groups/groupApi';
 import { useTranslation } from 'react-i18next';
@@ -206,7 +205,7 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
                         }`
                       }
                     >
-                      Invites
+                      Public Link
                     </Tab>
                     {isAdmin && (
                       <Tab
@@ -261,21 +260,18 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
                       )}
                     </Tab.Panel>
 
-                    {/* Invites Tab */}
+                    {/* Public Link Tab */}
                     <Tab.Panel className="h-full overflow-y-auto">
-                      {isAdmin && invitationCode && (
-                        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
-                          <InviteForm
-                            groupId={groupId}
-                            invitationCode={invitationCode}
-                          />
+                      {invitationCode ? (
+                        <InviteForm
+                          groupId={groupId}
+                          invitationCode={invitationCode}
+                        />
+                      ) : (
+                        <div className="py-8 text-center text-gray-600 dark:text-gray-400">
+                          No invitation code available
                         </div>
                       )}
-                      <InvitesTab
-                        groupId={groupId}
-                        groupName={groupName}
-                        isAdmin={isAdmin}
-                      />
                     </Tab.Panel>
 
                     {/* Code Invites Tab (FR-026) */}

@@ -33,10 +33,10 @@ export default function CodeInvitationsTab({
         <div className="flex items-start">
           <InformationCircleIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
           <div className="ml-3 text-sm text-blue-800 dark:text-blue-300">
-            <p className="font-medium">Code-Based Invitations</p>
+            <p className="font-medium">One-Time Code Invitations</p>
             <p className="mt-1">
-              Generate a shareable 8-character code that anyone can use to join your group.
-              Optionally restrict it to a specific email address.
+              Generate a unique 8-character code that can be used <strong>once</strong>. 
+              Choose "Anyone with the code" for open invitations, or "Specific email only" to restrict who can redeem it.
             </p>
           </div>
         </div>

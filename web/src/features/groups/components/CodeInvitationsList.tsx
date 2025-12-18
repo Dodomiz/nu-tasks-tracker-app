@@ -1,4 +1,4 @@
-import { ClipboardDocumentIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { ClipboardDocumentIcon, CheckIcon, LinkIcon } from '@heroicons/react/24/outline';
 import { formatDate } from '@/utils/dateFormatter';
 import { useTranslation } from 'react-i18next';
 import type { Invite } from '@/types/invite';
@@ -14,6 +14,7 @@ export default function CodeInvitationsList({
 }: CodeInvitationsListProps) {
   const { i18n } = useTranslation();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
   const handleCopyCode = async (code: string) => {
     try {
@@ -23,6 +24,18 @@ export default function CodeInvitationsList({
       setTimeout(() => setCopiedCode(null), 2000);
     } catch (err) {
       toast.error('Failed to copy code');
+    }
+  };
+
+  const handleCopyLink = async (code: string) => {
+    const shareableLink = `${window.location.origin}/groups/join-with-code/${code}`;
+    try {
+      await navigator.clipboard.writeText(shareableLink);
+      setCopiedLink(code);
+      toast.success('Link copied!');
+      setTimeout(() => setCopiedLink(null), 2000);
+    } catch (err) {
+      toast.error('Failed to copy link');
     }
   };
 
@@ -69,6 +82,9 @@ export default function CodeInvitationsList({
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
               Created
             </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -109,6 +125,25 @@ export default function CodeInvitationsList({
               </td>
               <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                 {formatDate(new Date(invite.createdAt), i18n.language)}
+              </td>
+              <td className="px-4 py-3 whitespace-nowrap">
+                <button
+                  onClick={() => handleCopyLink(invite.code)}
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                  title="Copy shareable link"
+                >
+                  {copiedLink === invite.code ? (
+                    <>
+                      <CheckIcon className="h-4 w-4" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <LinkIcon className="h-4 w-4" />
+                      <span>Copy Link</span>
+                    </>
+                  )}
+                </button>
               </td>
             </tr>
           ))}

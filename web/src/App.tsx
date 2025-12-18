@@ -19,6 +19,7 @@ import CreateGroupPage from './features/groups/pages/CreateGroupPage';
 import GroupDashboardPage from './features/groups/pages/GroupDashboardPage';
 import JoinGroupPage from './features/groups/pages/JoinGroupPage';
 import RedeemCodePage from './features/groups/pages/RedeemCodePage';
+import JoinWithCodePage from './features/groups/pages/JoinWithCodePage';
 
 function App() {
   const { i18n } = useTranslation();
@@ -94,6 +95,10 @@ function App() {
       <Route
         path="/groups/join/:invitationCode"
         element={isAuthenticated ? <JoinGroupPage /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/groups/join-with-code/:code"
+        element={isAuthenticated ? <JoinWithCodePage /> : <Navigate to="/login" replace />}
       />
       <Route
         path="/groups/join"
