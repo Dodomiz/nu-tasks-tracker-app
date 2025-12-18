@@ -3,6 +3,7 @@ import { Dialog, Transition, Tab } from '@headlessui/react';
 import { XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
 import InviteForm from './InviteForm';
 import InvitesTab from './InvitesTab';
+import CodeInvitationsTab from './CodeInvitationsTab';
 import { useGetGroupMembersQuery, useRemoveMemberMutation } from '@/features/groups/groupApi';
 import { useTranslation } from 'react-i18next';
 import { formatDate } from '@/utils/dateFormatter';
@@ -207,6 +208,19 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
                     >
                       Invites
                     </Tab>
+                    {isAdmin && (
+                      <Tab
+                        className={({ selected }) =>
+                          `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-colors ${
+                            selected
+                              ? 'bg-white dark:bg-gray-700 text-blue-700 dark:text-blue-300 shadow'
+                              : 'text-blue-600 dark:text-blue-400 hover:bg-white/[0.12] hover:text-blue-800 dark:hover:text-blue-200'
+                          }`
+                        }
+                      >
+                        Code Invites
+                      </Tab>
+                    )}
                   </Tab.List>
                   <Tab.Panels className="mt-4 h-[500px]">
                     {/* Members Tab */}
@@ -263,6 +277,16 @@ export default function MembersModal({ groupId, groupName, invitationCode, myRol
                         isAdmin={isAdmin}
                       />
                     </Tab.Panel>
+
+                    {/* Code Invites Tab (FR-026) */}
+                    {isAdmin && (
+                      <Tab.Panel className="h-full overflow-y-auto">
+                        <CodeInvitationsTab
+                          groupId={groupId}
+                          isAdmin={isAdmin}
+                        />
+                      </Tab.Panel>
+                    )}
                   </Tab.Panels>
                 </Tab.Group>
               </Dialog.Panel>

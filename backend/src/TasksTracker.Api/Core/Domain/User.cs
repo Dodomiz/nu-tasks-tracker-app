@@ -62,4 +62,6 @@ public class User
     
     [BsonElement("lastLoginAt")]
     public DateTime? LastLoginAt { get; set; }
+
+    public string FullName => FirstName + " " + LastName;
 }

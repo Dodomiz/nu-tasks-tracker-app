@@ -46,6 +46,7 @@ builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<IDistributionRepository, DistributionRepository>();
 builder.Services.AddScoped<IInvitesRepository, InvitesRepository>();
+builder.Services.AddScoped<TasksTracker.Api.Core.Interfaces.ICodeInvitesRepository, TasksTracker.Api.Infrastructure.Repositories.CodeInvitesRepository>();
 
 // Configure Redis Cache (optional, falls back to in-memory)
 var redisConnection = builder.Configuration.GetConnectionString("Redis");
@@ -77,6 +78,8 @@ builder.Services.AddScoped<TasksTracker.Api.Features.Auth.Services.IAuthService,
 builder.Services.AddScoped<TasksTracker.Api.Features.Groups.Services.IGroupService, TasksTracker.Api.Features.Groups.Services.GroupService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Groups.Services.IInvitationService, TasksTracker.Api.Features.Groups.Services.InvitationService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Groups.Services.IInvitesService, TasksTracker.Api.Features.Groups.Services.InvitesService>();
+builder.Services.AddScoped<TasksTracker.Api.Features.Groups.Services.ICodeInvitesService, TasksTracker.Api.Features.Groups.Services.CodeInvitesService>();
+builder.Services.AddSingleton<TasksTracker.Api.Core.Services.CodeGeneratorService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Categories.Services.ICategoryService, TasksTracker.Api.Features.Categories.Services.CategoryService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Templates.Services.ITemplateService, TasksTracker.Api.Features.Templates.Services.TemplateService>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Tasks.Services.ITaskService, TasksTracker.Api.Features.Tasks.Services.TaskService>();
@@ -189,6 +192,21 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         Log.Error(ex, "An error occurred while seeding system templates");
+    }
+}
+
+// Initialize MongoDB indexes for FR-026 (code invitations)
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var codeInvitesRepository = scope.ServiceProvider.GetRequiredService<TasksTracker.Api.Core.Interfaces.ICodeInvitesRepository>();
+        await codeInvitesRepository.EnsureIndexesAsync();
+        Log.Information("MongoDB indexes for code invitations initialized successfully");
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "An error occurred while initializing code invitations indexes");
     }
 }
 

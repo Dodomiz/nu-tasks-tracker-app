@@ -15,6 +15,7 @@ public class GroupsController(
     IGroupService groupService,
     IInvitationService invitationService,
     IInvitesService invitesService,
+    ICodeInvitesService codeInvitesService,
     ILogger<GroupsController> logger) : ControllerBase
 {
     private string UserId => User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
@@ -612,4 +613,102 @@ public class GroupsController(
                     "An error occurred while fetching members"));
             }
         }
+
+    /// <summary>
+    /// Create a code-based invitation for the group (FR-026)
+    /// </summary>
+    [HttpPost("{groupId}/code-invites")]
+    [ProducesResponseType(typeof(ApiResponse<CodeInviteResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CreateCodeInvite(
+        string groupId,
+        [FromBody] CreateCodeInviteRequest request)
+    {
+        try
+        {
+            var response = await codeInvitesService.CreateInviteAsync(
+                groupId,
+                UserId,
+                request.Email);
+
+            logger.LogInformation(
+                "Code invitation created for group {GroupId} by user {UserId}",
+                groupId, UserId);
+
+            return CreatedAtAction(
+                nameof(GetCodeInvites),
+                new { groupId },
+                ApiResponse<CodeInviteResponse>.SuccessResponse(response));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<object>.ErrorResponse(
+                "GROUP_NOT_FOUND",
+                ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, ApiResponse<object>.ErrorResponse(
+                "NOT_AUTHORIZED",
+                ex.Message));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse<object>.ErrorResponse(
+                "VALIDATION_ERROR",
+                ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<object>.ErrorResponse(
+                "OPERATION_ERROR",
+                ex.Message));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error creating code invitation for group {GroupId}", groupId);
+            return StatusCode(500, ApiResponse<object>.ErrorResponse(
+                "SERVER_ERROR",
+                "An error occurred while creating the invitation"));
+        }
+    }
+
+    /// <summary>
+    /// Get all code-based invitations for a group (FR-026)
+    /// </summary>
+    [HttpGet("{groupId}/code-invites")]
+    [ProducesResponseType(typeof(ApiResponse<CodeInvitesListResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCodeInvites(string groupId)
+    {
+        try
+        {
+            var invites = await codeInvitesService.GetGroupInvitesAsync(groupId, UserId);
+            var response = new CodeInvitesListResponse { Invites = invites };
+
+            return Ok(ApiResponse<CodeInvitesListResponse>.SuccessResponse(response));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<object>.ErrorResponse(
+                "GROUP_NOT_FOUND",
+                ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, ApiResponse<object>.ErrorResponse(
+                "NOT_AUTHORIZED",
+                ex.Message));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error fetching code invitations for group {GroupId}", groupId);
+            return StatusCode(500, ApiResponse<object>.ErrorResponse(
+                "SERVER_ERROR",
+                "An error occurred while fetching invitations"));
+        }
+    }
 }

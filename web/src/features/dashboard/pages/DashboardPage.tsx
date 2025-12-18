@@ -87,13 +87,57 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 sm:px-0">
           {/* Page Header */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 rtl:text-right">
-              {t('dashboard.myGroups', { defaultValue: 'My Groups' })}
-            </h2>
-            <p className="mt-1 text-sm text-gray-600 rtl:text-right">
-              {t('dashboard.manageGroups', { defaultValue: 'View and manage your group tasks' })}
-            </p>
+          <div className="mb-6 flex justify-between items-start">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 rtl:text-right">
+                {t('dashboard.myGroups', { defaultValue: 'My Groups' })}
+              </h2>
+              <p className="mt-1 text-sm text-gray-600 rtl:text-right">
+                {t('dashboard.manageGroups', { defaultValue: 'View and manage your group tasks' })}
+              </p>
+            </div>
+            {/* Action buttons */}
+            {!isLoading && !error && dashboardData && dashboardData.groups.length > 0 && (
+              <div className="flex gap-3">
+                <button
+                  onClick={() => navigate('/groups/join')}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  title="Join a group with an invitation code"
+                >
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  {t('dashboard.joinWithCode', { defaultValue: 'Join Group' })}
+                </button>
+                <button
+                  onClick={() => navigate('/groups/create')}
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                >
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  {t('dashboard.createGroup', { defaultValue: 'Create Group' })}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Error State */}

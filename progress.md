@@ -1,3 +1,33 @@
+## 2025-12-17 (FR-026: Code-Based Invitations - COMPLETE ✅)
+- **Epic:** Group Member Invitation System (Code-Based)
+- **Status:** 100% complete (21 of 21 stories done)
+- **Backend Files Created:**
+  - `/backend/Core/Domain/CodeInvite.cs` - Entity with code, email (nullable), status, timestamps
+  - `/backend/Core/Interfaces/ICodeInvitesRepository.cs` - Repository interface with 6 methods
+  - `/backend/Core/Services/CodeGeneratorService.cs` - 8-char alphanumeric code generator (RNG)
+  - `/backend/Infrastructure/Repositories/CodeInvitesRepository.cs` - Repository with MongoDB indexes
+  - `/backend/Features/Groups/Models/CodeInviteModels.cs` - 6 DTOs (Create, Response, Redeem, List)
+  - `/backend/Features/Groups/Services/ICodeInvitesService.cs` - Service interface (3 methods)
+  - `/backend/Features/Groups/Services/CodeInvitesService.cs` - Full service implementation (220 lines)
+  - `/backend/Features/Groups/Controllers/CodeInvitesController.cs` - Redemption controller
+- **Backend Files Modified:**
+  - `/backend/Features/Groups/Controllers/GroupsController.cs` - Added 2 endpoints (POST/GET code-invites)
+  - `/backend/src/TasksTracker.Api/Program.cs` - DI registration + indexes initialization
+- **Frontend Files Created:**
+  - `/web/src/types/invite.ts` - TypeScript interfaces (6 interfaces, 5 prop types)
+  - `/web/src/features/groups/components/CodeInvitationsTab.tsx` - Tab container with info banner
+  - `/web/src/features/groups/components/CreateCodeInviteForm.tsx` - Form with radio buttons + copy
+  - `/web/src/features/groups/components/CodeInvitationsList.tsx` - Table with copy buttons
+  - `/web/src/features/groups/components/RedeemCodeInviteModal.tsx` - Modal with uppercase input
+- **Frontend Files Modified:**
+  - `/web/src/features/groups/components/MembersModal.tsx` - Added 3rd tab "Code Invites"
+  - `/web/src/features/groups/groupApi.ts` - 3 RTK Query endpoints (create, get, redeem)
+  - `/web/src/app/api/apiSlice.ts` - Added 'CodeInvite' tag type
+- **Database:** Separate `codeInvites` collection with 3 indexes (code unique, groupId+status, groupId+createdAt)
+- **Stories Completed:** All 21 (9 frontend + 12 backend)
+- **Total Lines:** ~1,500 lines of production code
+- **Documentation:** [docs/FR-026/progress.md](docs/FR-026/progress.md), [docs/FR-026/design.md](docs/FR-026/design.md), [docs/FR-026/workplan.md](docs/FR-026/workplan.md)
+
 ## 2025-12-17 (FR-024: Backend fix + API wiring)
 - Fixed backend build by cleaning duplicated/corrupted DashboardService implementation.
 - Verified solution builds (0 errors) via dotnet build.

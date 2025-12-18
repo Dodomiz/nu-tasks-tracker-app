@@ -8,6 +8,13 @@ import type {
   PromoteMemberRequest,
   RemoveMemberRequest,
 } from '@/types/group';
+import type {
+  CreateInviteRequest,
+  InviteResponse as CodeInviteResponse,
+  InvitesListResponse,
+  RedeemInviteRequest,
+  RedeemInviteResponse,
+} from '@/types/invite';
 
 export const groupApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -212,6 +219,43 @@ export const groupApi = apiSlice.injectEndpoints({
         }
       },
     }),
+
+    // FR-026: Create code-based invitation
+    createCodeInvite: builder.mutation<CodeInviteResponse, { groupId: string; email?: string }>({
+      query: ({ groupId, email }) => ({
+        url: `/groups/${groupId}/code-invites`,
+        method: 'POST',
+        body: { email },
+      }),
+      transformResponse: (response: any) => response.data || response,
+      invalidatesTags: (_result, _error, { groupId }) => [
+        { type: 'CodeInvite', id: groupId },
+      ],
+    }),
+
+    // FR-026: Get all code-based invitations for a group
+    getGroupCodeInvites: builder.query<InvitesListResponse, string>({
+      query: (groupId) => `/groups/${groupId}/code-invites`,
+      transformResponse: (response: any) => response.data || response,
+      providesTags: (result, _error, groupId) =>
+        result
+          ? [
+              ...result.invites.map(({ id }) => ({ type: 'CodeInvite' as const, id })),
+              { type: 'CodeInvite', id: groupId },
+            ]
+          : [{ type: 'CodeInvite', id: groupId }],
+    }),
+
+    // FR-026: Redeem invitation code
+    redeemCodeInvite: builder.mutation<RedeemInviteResponse, RedeemInviteRequest>({
+      query: (body) => ({
+        url: '/code-invites/redeem',
+        method: 'POST',
+        body,
+      }),
+      transformResponse: (response: any) => response.data || response,
+      invalidatesTags: [{ type: 'Group', id: 'LIST' }],
+    }),
   }),
 });
 
@@ -229,4 +273,7 @@ export const {
   useResendInviteMutation,
   useCancelInviteMutation,
   useDeleteGroupMutation,
+  useCreateCodeInviteMutation,
+  useGetGroupCodeInvitesQuery,
+  useRedeemCodeInviteMutation,
 } = groupApi;
