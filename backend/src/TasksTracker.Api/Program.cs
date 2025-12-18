@@ -147,8 +147,16 @@ builder.Services.AddAuthorization();
 builder.Services.AddHealthChecks()
     .AddCheck<TasksTracker.Api.Infrastructure.Health.DashboardHealthCheck>("dashboard", tags: new[] { "ready" });
 
-// Add Controllers
-builder.Services.AddControllers();
+// Add Controllers with JSON options for enum string serialization
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Configure to serialize enums as strings instead of integers
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        
+        // Optional: Use camelCase for property names (if needed)
+        // options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 
 // Add API Explorer for Swagger
 builder.Services.AddEndpointsApiExplorer();

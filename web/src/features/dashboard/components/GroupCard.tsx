@@ -44,12 +44,13 @@ export default function GroupCard({
     >
       {/* Header */}
       <div className="mb-4 relative">
-        <div
-          className="text-xl font-bold text-gray-900 hover:text-primary-600 transition-colors text-left w-full focus:outline-none focus:ring-2 focus:ring-primary-500 rounded pr-8"
+        <button
+          onClick={() => onEditGroup(group.id)}
+          className="text-xl font-bold text-gray-900 hover:text-primary-600 transition-colors text-left w-full focus:outline-none focus:ring-2 focus:ring-primary-500 rounded pr-8 cursor-pointer"
           title={group.name}
         >
           {truncateText(group.name, 50)}
-        </div>
+        </button>
 
         {isAdmin && (
           <button

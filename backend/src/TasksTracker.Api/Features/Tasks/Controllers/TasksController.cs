@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TasksTracker.Api.Features.Tasks.Models;
@@ -20,11 +21,10 @@ public class TasksController(ITaskService taskService) : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Name)) return BadRequest("Name is required.");
         if (request.Difficulty is < 1 or > 10) return BadRequest("Difficulty must be between 1 and 10.");
 
-        var userId = User.FindFirst("sub")?.Value ?? string.Empty;
-        var roles = User.FindAll("role").Select(r => r.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var isAdmin = roles.Contains(GroupRole.Admin);
-
-        var id = await taskService.CreateAsync(request, userId, isAdmin, ct);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+        
+        // NOTE: Service layer verifies group-specific admin role (not global JWT role)
+        var id = await taskService.CreateAsync(request, userId, isAdmin: true, ct);
         return Created($"/api/tasks/{id}", new { id });
     }
 
@@ -51,7 +51,7 @@ public class TasksController(ITaskService taskService) : ControllerBase
                 return BadRequest("AssigneeUserId is required.");
             }
 
-            var userId = User.FindFirst("sub")?.Value ?? string.Empty;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
 
             try
             {
@@ -79,7 +79,7 @@ public class TasksController(ITaskService taskService) : ControllerBase
         [Authorize]
         public async Task<IActionResult> UnassignTask(string taskId, CancellationToken ct)
         {
-            var userId = User.FindFirst("sub")?.Value ?? string.Empty;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
 
             try
             {

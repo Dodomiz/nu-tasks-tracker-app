@@ -11,8 +11,22 @@ public class TaskService(
 {
     public async Task<string> CreateAsync(CreateTaskRequest request, string currentUserId, bool isAdmin, CancellationToken ct)
     {
-        if (!isAdmin)
-            throw new UnauthorizedAccessException("Only admins can create tasks.");
+        // Verify user is admin of THIS specific group (not global admin)
+        var group = await groupRepository.GetByIdAsync(request.GroupId);
+        if (group == null)
+            throw new KeyNotFoundException($"Group {request.GroupId} not found");
+
+        var currentMember = group.Members.FirstOrDefault(m => m.UserId == currentUserId);
+        if (currentMember == null)
+            throw new UnauthorizedAccessException("You must be a member of this group to create tasks");
+
+        if (currentMember.Role != GroupRole.Admin)
+            throw new UnauthorizedAccessException("Only group admins can create tasks");
+
+        // Verify assigned user is a member of the group
+        var assignedMember = group.Members.FirstOrDefault(m => m.UserId == request.AssignedUserId);
+        if (assignedMember == null)
+            throw new ArgumentException("Assigned user must be a member of this group");
 
         if (string.IsNullOrWhiteSpace(request.Name))
             throw new ArgumentException("Name is required.");

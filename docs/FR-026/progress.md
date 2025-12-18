@@ -1,7 +1,7 @@
 # FR-026 Group Member Invitation System - Implementation Progress
 
-**Document Version:** 1.0  
-**Last Updated:** December 17, 2025  
+**Document Version:** 1.1  
+**Last Updated:** December 18, 2025  
 **Workplan Reference:** [workplan.md](./workplan.md)  
 **Design Reference:** [design.md](./design.md)
 
@@ -9,9 +9,15 @@
 
 ## Executive Summary
 
-**Overall Status:** ✅ **COMPLETE** (100% - 21/21 stories)
+**Overall Status:** ✅ **COMPLETE** (100% - 21/21 stories + 2 bug fixes)
 
 FR-026 code-based invitation system fully implemented. Using separate `codeInvites` collection to avoid conflicts with FR-025. All backend services, controllers, frontend components, and DI registrations complete.
+
+### Additional Work (December 18, 2025)
+- ✅ **Bug Fix:** Enum serialization - Added JsonStringEnumConverter for TaskFrequency
+- ✅ **Bug Fix:** Authorization - Implemented group-specific admin checks in TaskService
+- ✅ **i18n:** Complete translation support for CreateTaskForm (23 keys added)
+- ✅ **Learning:** Comprehensive codebase learning session documented in LEARNING-SUMMARY.md
 
 ---
 
@@ -365,11 +371,122 @@ Users can redeem invitation codes through multiple entry points:
 
 ---
 
+## Post-Implementation Fixes & Enhancements (December 18, 2025)
+
+### Bug Fix 1: Task Frequency Enum Serialization ✅
+**Problem:** API was rejecting valid frequency values ("OneTime", "Daily", etc.) with JSON conversion error.
+
+**Root Cause:** ASP.NET Core's default System.Text.Json serializer expects enum integers, but frontend sends strings.
+
+**Solution:**
+```csharp
+// Program.cs
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
+```
+
+**Files Changed:**
+- `backend/src/TasksTracker.Api/Program.cs`
+
+**Impact:** All enum fields now support string serialization/deserialization across the entire API.
+
+---
+
+### Bug Fix 2: Group-Specific Authorization ✅
+**Problem:** TaskService used boolean `isAdmin` parameter without group context, allowing global admin checks.
+
+**Root Cause:** Authorization logic violated principle that users have different roles in different groups.
+
+**Solution:** Service now queries GroupRepository to verify group-specific admin role:
+```csharp
+var group = await groupRepository.GetByIdAsync(request.GroupId);
+var member = group.Members.FirstOrDefault(m => m.UserId == currentUserId);
+if (member?.Role != GroupRole.Admin)
+    throw new UnauthorizedAccessException("Only group admins can create tasks");
+```
+
+**Files Changed:**
+- `backend/src/TasksTracker.Api/Features/Tasks/Services/TaskService.cs`
+- `backend/src/TasksTracker.Api/Features/Tasks/Controllers/TasksController.cs`
+
+**Impact:** Proper group-scoped authorization for task creation. Users must be admin of the specific group.
+
+---
+
+### Bug Fix 3: JWT Claims Retrieval ✅
+**Problem:** `userId` was returning empty string, causing "You must be a member of this group" error.
+
+**Root Cause:** TasksController was using string literal `"sub"` to retrieve userId claim, but ASP.NET Core JWT middleware doesn't reliably map this claim name. Other controllers in the codebase use `ClaimTypes.NameIdentifier`.
+
+**Discovery Pattern:**
+- JWT token generation includes both claims:
+  ```csharp
+  new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+  new Claim(ClaimTypes.NameIdentifier, user.Id),
+  ```
+- ASP.NET Core claim mapping transforms claim names during JWT validation
+- `ClaimTypes.NameIdentifier` is the standard, reliable way to retrieve user ID
+
+**Solution:**
+```csharp
+// ❌ WRONG - Unreliable
+var userId = User.FindFirst("sub")?.Value ?? string.Empty;
+
+// ✅ CORRECT - Standard pattern
+var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+```
+
+**Files Changed:**
+- `backend/src/TasksTracker.Api/Features/Tasks/Controllers/TasksController.cs` (3 occurrences)
+
+**Impact:** UserId now correctly retrieved from JWT claims. Task creation, assignment, and unassignment now work properly.
+
+---
+
+### Enhancement: CreateTaskForm i18n ✅
+**Added Translation Keys:** 23 new keys in `tasks` namespace
+- Form labels: taskName, assignTo, description, difficulty, dueDate, frequency
+- Placeholders: taskNamePlaceholder, descriptionPlaceholder
+- Options: oneTime, daily, weekly, biWeekly, monthly, quarterly, yearly
+- Actions: creating, createTask, taskCreated, errorCreatingTask
+
+**Files Changed:**
+- `web/src/components/CreateTaskForm.tsx`
+- `web/src/features/dashboard/components/CreateTaskFromGroupModal.tsx`
+- `web/public/locales/en/translation.json`
+- `web/public/locales/he/translation.json`
+
+**Impact:** Complete Hebrew/English support for task creation modal.
+
+---
+
+### Learning Documentation ✅
+Created comprehensive learning summary following do-learning.prompt.md methodology:
+- Architecture analysis (layered feature-based pattern)
+- Request flow tracing (Controllers → Services → Repositories → MongoDB)
+- Authorization model deep dive
+- Error handling patterns
+- Design patterns identified (Repository, DI, Middleware, DTO, Service Layer)
+
+**Document:** [LEARNING-SUMMARY.md](./LEARNING-SUMMARY.md)
+
+---
+
 ## Conclusion
 
-**Status:** ✅ **COMPLETE** (100% - 21/21 stories)
+**Status:** ✅ **COMPLETE** (100% - 21/21 stories + 2 critical bug fixes + i18n enhancement)
 
 FR-026 code-based invitation system fully implemented with complete user flow integration. Using separate `codeInvites` collection ensures zero conflicts with FR-025. All backend services, controllers, frontend components, routes, and navigation integrated.
+
+**Additional Achievements:**
+- ✅ Fixed enum serialization for all API endpoints
+- ✅ Implemented proper group-scoped authorization
+- ✅ Complete i18n support for task creation
+- ✅ Comprehensive codebase learning documentation
 
 **Confidence Level:** High ✅  
 **Blockers:** None  
