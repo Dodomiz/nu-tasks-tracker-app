@@ -97,7 +97,8 @@
         "createGroup": "Create Group",
         "editGroup": "Edit Group",
         "manageMembers": "Manage Members"
-    },    "tasks": {
+    },
+    "tasks": {
         "createAndAssignTask": "Create & Assign Task",
         "createTaskDescription": "Set up a new task and assign it to a team member",
         "taskName": "Task Name",
@@ -122,7 +123,8 @@
         "createTask": "Create Task",
         "taskCreated": "Task created!",
         "errorCreatingTask": "Error creating task"
-    },    "settings": {
+    },
+    "settings": {
         "title": "Settings",
         "language": "Language",
         "profile": "Profile",

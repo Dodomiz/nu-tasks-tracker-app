@@ -97,7 +97,8 @@
         "createGroup": "צור קבוצה",
         "editGroup": "ערוך קבוצה",
         "manageMembers": "נהל חברים"
-    },    "tasks": {
+    },
+    "tasks": {
         "createAndAssignTask": "צור והקצה משימה",
         "createTaskDescription": "הגדר משימה חדשה והקצה אותה לחבר צוות",
         "taskName": "שם המשימה",
@@ -122,7 +123,8 @@
         "createTask": "צור משימה",
         "taskCreated": "המשימה נוצרה!",
         "errorCreatingTask": "שגיאה ביצירת משימה"
-    },    "settings": {
+    },
+    "settings": {
         "title": "הגדרות",
         "language": "שפה",
         "profile": "פרופיל",
