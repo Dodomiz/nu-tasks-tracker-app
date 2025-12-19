@@ -7,7 +7,7 @@ public interface ITaskRepository
     Task<string> CreateAsync(TaskItem task, CancellationToken ct);
     Task<(List<TaskItem> items, long total)> FindAsync(
         string? groupId,
-        Core.Domain.TaskStatus? status,
+        Domain.TaskStatus? status,
         string? assignedTo,
         string? categoryId,
         int page,

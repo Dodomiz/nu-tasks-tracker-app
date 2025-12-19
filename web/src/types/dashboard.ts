@@ -1,4 +1,6 @@
 // Dashboard feature types
+import {Role} from "@/types/group.ts";
+
 export interface MemberSummary {
   userId: string;
   firstName: string;
@@ -12,12 +14,14 @@ export interface GroupCardDto {
   id: string;
   name: string;
   description: string | null;
+  avatarUrl: string | null;
+  category: string;
   memberCount: number;
   taskCount: number;
   lastActivity: string;
   admins: MemberSummary[];
   recentMembers: MemberSummary[];
-  myRole: 'Admin' | 'Member';
+  myRole: Role;
 }
 
 export interface DashboardResponse {

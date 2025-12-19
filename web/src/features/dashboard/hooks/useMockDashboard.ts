@@ -14,6 +14,8 @@ export function useMockDashboard(_userId?: string): {
         id: '1',
         name: 'Family Tasks',
         description: 'Household chores and errands for the family',
+        avatarUrl: null,
+        category: 'home',
         memberCount: 8,
         taskCount: 15,
         lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
@@ -58,6 +60,8 @@ export function useMockDashboard(_userId?: string): {
       {
         id: '2',
         name: 'Work Team - Q1 Projects',
+        avatarUrl: null,
+        category: 'work',
         description: 'Quarterly planning and execution tasks',
         memberCount: 12,
         taskCount: 23,
@@ -104,6 +108,8 @@ export function useMockDashboard(_userId?: string): {
         id: '3',
         name: 'Book Club',
         description: 'Monthly reading discussions and recommendations',
+        avatarUrl: null,
+        category: 'hobbies',
         memberCount: 5,
         taskCount: 3,
         lastActivity: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago

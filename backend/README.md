@@ -188,6 +188,26 @@ Log levels can be configured in `appsettings.json`:
 }
 ```
 
+### Static Files
+
+The API serves static files (images, documents, etc.) from the `/static` URL path.
+
+**Adding static files:**
+
+1. Place files in: `src/TasksTracker.Api/static/`
+2. Files are automatically copied to build output
+3. Access via: `http://localhost:5199/static/filename.ext`
+
+**Example:**
+```
+File location: src/TasksTracker.Api/static/NuKvarLogo.png
+Access URL:    http://localhost:5199/static/NuKvarLogo.png
+```
+
+**Configuration:**
+- Middleware: `UseStaticFiles` in `Program.cs`
+- Build: Static files copied via `.csproj` ItemGroup
+
 ## Development Guidelines
 
 ### Adding a New Feature

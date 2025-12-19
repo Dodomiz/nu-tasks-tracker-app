@@ -5,6 +5,14 @@ import { formatDistanceToNow } from 'date-fns';
 import { enUS, he } from 'date-fns/locale';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { PencilIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
+import EditGroupModal from '@/features/groups/components/EditGroupModal';
+import { UpdateGroupRequest } from '@/types/group';
+import { useUpdateGroupMutation } from '@/features/groups/groupApi';
+import { toast } from 'react-hot-toast';
+import { useGetTasksQuery } from '@/features/tasks/api/tasksApi';
+import GroupTasksPanel from '@/features/groups/components/GroupTasksPanel';
+import { selectCurrentUser } from '@/features/auth/authSlice';
 
 interface GroupCardProps {
   group: GroupCardDto;
@@ -23,7 +31,29 @@ export default function GroupCard({
 }: GroupCardProps) {
   const { t } = useTranslation();
   const currentLang = useAppSelector((state) => state.language.current);
+  const currentUser = useAppSelector(selectCurrentUser);
   const isAdmin = group.myRole === 'Admin';
+  
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isTasksPanelOpen, setIsTasksPanelOpen] = useState(false);
+  const [editForm, setEditForm] = useState<UpdateGroupRequest>({
+    name: '',
+    description: '',
+    avatarUrl: '',
+    category: ''
+  });
+  
+  const [updateGroup, { isLoading: isUpdating }] = useUpdateGroupMutation();
+  
+  // Fetch tasks for this group
+  const { data: tasksData } = useGetTasksQuery({
+    groupId: group.id,
+    page: 1,
+    pageSize: 100 // Get all tasks to count them
+  });
+  
+  // Use actual task count from fetched data, fallback to group.taskCount
+  const actualTaskCount = tasksData?.total ?? group.taskCount;
   
   const locale = currentLang === 'he' ? he : enUS;
   const lastActivityText = formatDistanceToNow(new Date(group.lastActivity), {
@@ -34,6 +64,39 @@ export default function GroupCard({
   const truncateText = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
+  };
+  
+  const handleOpenEditModal = () => {
+    setEditForm({
+      name: group.name,
+      description: group.description || '',
+      avatarUrl: group.avatarUrl || '',
+      category: group.category
+    });
+    setIsEditModalOpen(true);
+  };
+  
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+  };
+  
+  const handleSaveEdit = async () => {
+    try {
+      await updateGroup({
+        id: group.id,
+        body: editForm
+      }).unwrap();
+      
+      toast.success(t('groups.groupUpdated', { defaultValue: 'Group updated successfully' }));
+      setIsEditModalOpen(false);
+    } catch (err: any) {
+      const errorMessage = err?.data?.message || t('groups.updateFailed', { defaultValue: 'Failed to update group' });
+      toast.error(errorMessage);
+    }
+  };
+  
+  const handleOpenTasksPanel = () => {
+    setIsTasksPanelOpen(true);
   };
 
   return (
@@ -56,7 +119,7 @@ export default function GroupCard({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onEditGroup(group.id);
+              handleOpenEditModal();
             }}
             className="absolute top-0 right-0 p-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded transition-colors"
             aria-label={`Edit ${group.name}`}
@@ -76,8 +139,17 @@ export default function GroupCard({
       {/* Stats Badges */}
       <div className="flex gap-3 mb-4 flex-wrap">
         <span
-          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+          onClick={() => onManageMembers(group.id)}
+          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 cursor-pointer hover:bg-blue-200 transition-colors"
           aria-label={`${group.memberCount} members`}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onManageMembers(group.id);
+            }
+          }}
         >
           <svg
             className="w-4 h-4 mr-1.5"
@@ -91,8 +163,17 @@ export default function GroupCard({
         </span>
 
         <span
-          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800"
-          aria-label={`${group.taskCount} tasks`}
+          onClick={handleOpenTasksPanel}
+          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 cursor-pointer hover:bg-green-200 transition-colors"
+          aria-label={`${actualTaskCount} tasks`}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleOpenTasksPanel();
+            }
+          }}
         >
           <svg
             className="w-4 h-4 mr-1.5"
@@ -106,7 +187,7 @@ export default function GroupCard({
               clipRule="evenodd"
             />
           </svg>
-          {group.taskCount} {t('common.tasks', { count: group.taskCount, defaultValue: 'tasks' })}
+          {actualTaskCount} {t('common.tasks', { count: actualTaskCount, defaultValue: 'tasks' })}
         </span>
       </div>
 
@@ -160,25 +241,27 @@ export default function GroupCard({
           </svg>
           {t('dashboard.createTask', { defaultValue: 'Create Task' })}
         </button>
-
-        {isAdmin && (
-          <button
-            onClick={() => onManageMembers(group.id)}
-            className="flex-1 min-w-[140px] px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors text-sm"
-            aria-label={`Manage members of ${group.name}`}
-          >
-            <svg
-              className="w-4 h-4 inline mr-1.5"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-            </svg>
-            {t('dashboard.manageMembers', { defaultValue: 'Manage Members' })}
-          </button>
-        )}
       </div>
+      
+      {/* Edit Group Modal */}
+      <EditGroupModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        editForm={editForm}
+        onFormChange={setEditForm}
+        onSave={handleSaveEdit}
+        isSaving={isUpdating}
+      />
+      
+      {/* Group Tasks Panel */}
+      <GroupTasksPanel
+        groupId={group.id}
+        groupName={group.name}
+        myRole={group.myRole}
+        currentUserId={currentUser?.id || ''}
+        isOpen={isTasksPanelOpen}
+        onClose={() => setIsTasksPanelOpen(false)}
+      />
     </article>
   );
 }

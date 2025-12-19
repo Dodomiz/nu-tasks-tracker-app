@@ -46,7 +46,7 @@ builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<IDistributionRepository, DistributionRepository>();
 builder.Services.AddScoped<IInvitesRepository, InvitesRepository>();
-builder.Services.AddScoped<TasksTracker.Api.Core.Interfaces.ICodeInvitesRepository, TasksTracker.Api.Infrastructure.Repositories.CodeInvitesRepository>();
+builder.Services.AddScoped<ICodeInvitesRepository, CodeInvitesRepository>();
 
 // Configure Redis Cache (optional, falls back to in-memory)
 var redisConnection = builder.Configuration.GetConnectionString("Redis");
@@ -175,6 +175,14 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Configure static files serving
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "static")),
+    RequestPath = "/static"
+});
+
 // Configure HTTP request pipeline
 if (!app.Environment.IsProduction())
 {
@@ -208,7 +216,7 @@ using (var scope = app.Services.CreateScope())
 {
     try
     {
-        var codeInvitesRepository = scope.ServiceProvider.GetRequiredService<TasksTracker.Api.Core.Interfaces.ICodeInvitesRepository>();
+        var codeInvitesRepository = scope.ServiceProvider.GetRequiredService<ICodeInvitesRepository>();
         await codeInvitesRepository.EnsureIndexesAsync();
         Log.Information("MongoDB indexes for code invitations initialized successfully");
     }

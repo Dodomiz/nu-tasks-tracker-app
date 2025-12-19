@@ -6,6 +6,7 @@ import { selectCurrentUser } from '@/features/auth/authSlice';
 import { formatDate } from '@/utils/dateFormatter';
 import { useState } from 'react';
 import MembersModal from '../components/MembersModal';
+import EditGroupModal from '../components/EditGroupModal';
 import GroupTasksPanel from '../components/GroupTasksPanel';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { toast } from 'react-hot-toast';
@@ -23,9 +24,9 @@ export default function GroupDashboardPage() {
   const navigate = useNavigate();
   const currentUser = useAppSelector(selectCurrentUser);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isTasksPanelOpen, setIsTasksPanelOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<UpdateGroupRequest>({
     name: '',
     description: '',
@@ -88,17 +89,11 @@ export default function GroupDashboardPage() {
       avatarUrl: group.avatarUrl || '',
       category: group.category
     });
-    setIsEditing(true);
+    setIsEditModalOpen(true);
   };
 
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditForm({
-      name: '',
-      description: '',
-      avatarUrl: '',
-      category: ''
-    });
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
   };
 
   const handleSaveEdit = async () => {
@@ -111,7 +106,7 @@ export default function GroupDashboardPage() {
       }).unwrap();
       
       toast.success('Group updated successfully');
-      setIsEditing(false);
+      setIsEditModalOpen(false);
     } catch (err: any) {
       const errorMessage = err?.data?.message || 'Failed to update group';
       toast.error(errorMessage);
@@ -184,86 +179,7 @@ export default function GroupDashboardPage() {
 
           {/* Group Header */}
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
-            {isEditing ? (
-              <div className="space-y-4">
-                {/* Edit Mode */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Group Name
-                  </label>
-                  <input
-                    type="text"
-                    value={editForm.name}
-                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="Enter group name"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={editForm.description}
-                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="Enter group description"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Avatar URL
-                  </label>
-                  <input
-                    type="text"
-                    value={editForm.avatarUrl}
-                    onChange={(e) => setEditForm({ ...editForm, avatarUrl: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="https://example.com/avatar.jpg"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Category
-                  </label>
-                  <select
-                    value={editForm.category}
-                    onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="home">🏠 Home</option>
-                    <option value="work">💼 Work</option>
-                    <option value="school">📚 School</option>
-                    <option value="personal">👤 Personal</option>
-                    <option value="hobbies">🎨 Hobbies</option>
-                    <option value="fitness">💪 Fitness</option>
-                    <option value="finance">💰 Finance</option>
-                  </select>
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <button
-                    onClick={handleSaveEdit}
-                    disabled={isUpdating || !editForm.name.trim()}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-md font-medium"
-                  >
-                    {isUpdating ? 'Saving...' : 'Save Changes'}
-                  </button>
-                  <button
-                    onClick={handleCancelEdit}
-                    disabled={isUpdating}
-                    className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md font-medium"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
                   {group.avatarUrl && (
                     <img
@@ -294,7 +210,29 @@ export default function GroupDashboardPage() {
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-start gap-2">
+                  {isAdmin && (
+                    <button
+                      onClick={handleStartEdit}
+                      className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded transition-colors"
+                      aria-label="Edit Group"
+                      title="Edit Group"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                        />
+                      </svg>
+                    </button>
+                  )}
                   <button
                     onClick={() => setIsTasksPanelOpen(true)}
                     className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium"
@@ -302,24 +240,15 @@ export default function GroupDashboardPage() {
                     View Tasks
                   </button>
                   {isAdmin && (
-                    <>
-                      <button
-                        onClick={handleStartEdit}
-                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md font-medium"
-                      >
-                        Edit Group
-                      </button>
-                      <button
-                        onClick={() => setIsMembersModalOpen(true)}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
-                      >
-                        Manage Members
-                      </button>
-                    </>
+                    <button
+                      onClick={() => setIsMembersModalOpen(true)}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
+                    >
+                      Manage Members
+                    </button>
                   )}
                 </div>
               </div>
-            )}
           </div>
 
           {/* Members List */}
@@ -482,6 +411,16 @@ export default function GroupDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Group Modal */}
+      <EditGroupModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        editForm={editForm}
+        onFormChange={setEditForm}
+        onSave={handleSaveEdit}
+        isSaving={isUpdating}
+      />
 
       {/* Members Modal */}
       {isMembersModalOpen && groupId && (

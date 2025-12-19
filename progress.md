@@ -1,3 +1,20 @@
+## 2025-12-19 (Static Files Serving Configuration - COMPLETE ✅)
+- **Goal:** Configure backend to serve static files (like images/logos) from `/static` URL path
+- **Backend Changes:**
+  - Added `UseStaticFiles` middleware configuration in Program.cs
+  - Configured PhysicalFileProvider to serve files from `static/` directory
+  - Set RequestPath to `/static` for URL mapping
+  - Updated .csproj to copy static files to output directory during build
+- **Files Modified (2):**
+  - `backend/src/TasksTracker.Api/Program.cs` - Added static files middleware with custom path
+  - `backend/src/TasksTracker.Api/TasksTracker.Api.csproj` - Added ItemGroup to copy static/** files
+- **Usage:** 
+  - Place files in: `backend/src/TasksTracker.Api/static/`
+  - Access via URL: `http://localhost:5199/static/filename.ext`
+  - Example: `NuKvarLogo.png` → `http://localhost:5199/static/NuKvarLogo.png`
+- **Build Verification:** ✅ Static files copied to `bin/Debug/net9.0/static/` directory
+- **Compilation:** ✅ Backend builds successfully with no errors
+
 ## 2025-01-XX (Group Member Role Management - COMPLETE ✅)
 - **Goal:** Allow group admins to promote members to admin or demote admins to regular users
 - **Backend Changes:**

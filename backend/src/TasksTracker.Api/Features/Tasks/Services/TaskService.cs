@@ -47,7 +47,14 @@ public class TaskService(
             CreatedByUserId = currentUserId
         };
 
-        return await taskRepository.CreateAsync(task, ct);
+        var taskId = await taskRepository.CreateAsync(task, ct);
+        
+        // Increment group task count
+        group.TaskCount++;
+        group.LastActivity = DateTime.UtcNow;
+        await groupRepository.UpdateAsync(group);
+        
+        return taskId;
     }
 
     public async Task<PagedResult<TaskResponse>> ListAsync(TaskListQuery query, CancellationToken ct)

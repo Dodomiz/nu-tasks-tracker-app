@@ -18,7 +18,7 @@ public class AIDistributionEngine(
     /// <summary>
     /// Generate task distribution using AI
     /// </summary>
-    public async System.Threading.Tasks.Task<List<AssignmentProposal>> GenerateAsync(
+    public async Task<List<AssignmentProposal>> GenerateAsync(
         List<TaskItem> tasks,
         List<User> users,
         CancellationToken cancellationToken = default)

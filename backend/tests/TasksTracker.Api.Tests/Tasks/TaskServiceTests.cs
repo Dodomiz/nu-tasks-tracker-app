@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using FluentAssertions;
 using Moq;
@@ -14,11 +15,34 @@ public class TaskServiceTests
     [Fact]
     public async System.Threading.Tasks.Task CreateAsync_Admin_Succeeds()
     {
-        var repo = new Mock<ITaskRepository>();
-        repo.Setup(r => r.CreateAsync(It.IsAny<TaskItem>(), It.IsAny<CancellationToken>()))
+        var currentUserId = "507f1f77bcf86cd799439014";
+        var assignedUserId = "507f1f77bcf86cd799439013";
+        var groupId = "507f1f77bcf86cd799439012";
+        
+        var group = new Group
+        {
+            Id = groupId,
+            Name = "Test Group",
+            Members = new List<GroupMember>
+            {
+                new() { UserId = currentUserId, Role = GroupRole.Admin, JoinedAt = DateTime.UtcNow },
+                new() { UserId = assignedUserId, Role = GroupRole.RegularUser, JoinedAt = DateTime.UtcNow }
+            }
+        };
+        
+        var taskRepo = new Mock<ITaskRepository>();
+        taskRepo.Setup(r => r.CreateAsync(It.IsAny<TaskItem>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("507f1f77bcf86cd799439011");
+            
+        var groupRepo = new Mock<IGroupRepository>();
+        groupRepo.Setup(r => r.GetByIdAsync(groupId))
+            .ReturnsAsync(group);
+        groupRepo.Setup(r => r.UpdateAsync(It.IsAny<Group>()))
+            .ReturnsAsync(group);
+            
+        var userRepo = new Mock<IUserRepository>();
 
-        var service = new TaskService(repo.Object);
+        var service = new TaskService(taskRepo.Object, groupRepo.Object, userRepo.Object);
         var request = new CreateTaskRequest
         {
             GroupId = "507f1f77bcf86cd799439012",
@@ -36,19 +60,39 @@ public class TaskServiceTests
     [Fact]
     public async System.Threading.Tasks.Task CreateAsync_NonAdmin_Throws()
     {
-        var repo = new Mock<ITaskRepository>();
-        var service = new TaskService(repo.Object);
+        var currentUserId = "507f1f77bcf86cd799439014";
+        var assignedUserId = "507f1f77bcf86cd799439013";
+        var groupId = "507f1f77bcf86cd799439012";
+        
+        var group = new Group
+        {
+            Id = groupId,
+            Name = "Test Group",
+            Members = new List<GroupMember>
+            {
+                new() { UserId = currentUserId, Role = GroupRole.RegularUser, JoinedAt = DateTime.UtcNow },
+                new() { UserId = assignedUserId, Role = GroupRole.RegularUser, JoinedAt = DateTime.UtcNow }
+            }
+        };
+        
+        var taskRepo = new Mock<ITaskRepository>();
+        var groupRepo = new Mock<IGroupRepository>();
+        groupRepo.Setup(r => r.GetByIdAsync(groupId))
+            .ReturnsAsync(group);
+        var userRepo = new Mock<IUserRepository>();
+        
+        var service = new TaskService(taskRepo.Object, groupRepo.Object, userRepo.Object);
         var request = new CreateTaskRequest
         {
-            GroupId = "507f1f77bcf86cd799439012",
-            AssignedUserId = "507f1f77bcf86cd799439013",
+            GroupId = groupId,
+            AssignedUserId = assignedUserId,
             Name = "Do dishes",
             Difficulty = 3,
             DueAt = DateTime.UtcNow.AddDays(1),
             Frequency = TaskFrequency.OneTime
         };
 
-        var act = async () => await service.CreateAsync(request, "507f1f77bcf86cd799439014", false, CancellationToken.None);
+        var act = async () => await service.CreateAsync(request, currentUserId, false, CancellationToken.None);
         await act.Should().ThrowAsync<UnauthorizedAccessException>();
     }
 
@@ -57,12 +101,32 @@ public class TaskServiceTests
     [InlineData(11)]
     public async System.Threading.Tasks.Task CreateAsync_InvalidDifficulty_Throws(int difficulty)
     {
-        var repo = new Mock<ITaskRepository>();
-        var service = new TaskService(repo.Object);
+        var currentUserId = "507f1f77bcf86cd799439014";
+        var assignedUserId = "507f1f77bcf86cd799439013";
+        var groupId = "507f1f77bcf86cd799439012";
+        
+        var group = new Group
+        {
+            Id = groupId,
+            Name = "Test Group",
+            Members = new List<GroupMember>
+            {
+                new() { UserId = currentUserId, Role = GroupRole.Admin, JoinedAt = DateTime.UtcNow },
+                new() { UserId = assignedUserId, Role = GroupRole.RegularUser, JoinedAt = DateTime.UtcNow }
+            }
+        };
+        
+        var taskRepo = new Mock<ITaskRepository>();
+        var groupRepo = new Mock<IGroupRepository>();
+        groupRepo.Setup(r => r.GetByIdAsync(groupId))
+            .ReturnsAsync(group);
+        var userRepo = new Mock<IUserRepository>();
+        
+        var service = new TaskService(taskRepo.Object, groupRepo.Object, userRepo.Object);
         var request = new CreateTaskRequest
         {
-            GroupId = "507f1f77bcf86cd799439012",
-            AssignedUserId = "507f1f77bcf86cd799439013",
+            GroupId = groupId,
+            AssignedUserId = assignedUserId,
             Name = "Do dishes",
             Difficulty = difficulty,
             DueAt = DateTime.UtcNow.AddDays(1),
