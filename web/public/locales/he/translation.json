@@ -83,6 +83,7 @@
         "title": "לוח בקרה",
         "welcome": "שלום, {{name}}!",
         "myTasks": "המשימות שלי",
+        "myTasksDescription": "צפה ונהל את כל המשימות שלך בכל הקבוצות",
         "myGroups": "הקבוצות שלי",
         "manageGroups": "צפה ונהל את משימות הקבוצה",
         "loading": "טוען קבוצות",
@@ -101,6 +102,44 @@
         "taskWillBeCreatedIn": "משימה זו תיווצר בקבוצה זו וניתן להקצות אותה לכל חבר."
     },
     "tasks": {
+        "filters": {
+            "title": "סינון",
+            "difficulty": "רמת קושי",
+            "status": "סטטוס",
+            "clear": "נקה את כל הסינונים"
+        },
+        "sort": {
+            "label": "מיין לפי:",
+            "dueDateAsc": "תאריך יעד (הקרוב ביותר ראשון)",
+            "dueDateDesc": "תאריך יעד (הרחוק ביותר ראשון)",
+            "difficultyAsc": "רמת קושי (הקל ביותר ראשון)",
+            "difficultyDesc": "רמת קושי (הקשה ביותר ראשון)",
+            "statusAsc": "סטטוס (א-ת)",
+            "statusDesc": "סטטוס (ת-א)"
+        },
+        "difficulty": {
+            "easy": "קל",
+            "medium": "בינוני",
+            "hard": "קשה"
+        },
+        "status": {
+            "pending": "ממתין",
+            "inProgress": "בביצוע",
+            "completed": "הושלם",
+            "overdue": "באיחור"
+        },
+        "emptyState": {
+            "noTasks": "לא נמצאו משימות",
+            "noTasksDescription": "אין לך משימות מוקצות כרגע.",
+            "noMatchingTasks": "אין משימות שמתאימות לסינון",
+            "clearFiltersButton": "נקה סינונים כדי לראות את כל המשימות"
+        },
+        "count": "מציג {{count}} מתוך {{total}} משימות",
+        "due": "יעד",
+        "overdue": "באיחור",
+        "error": {
+            "loadFailed": "טעינת המשימות נכשלה. אנא נסה שוב."
+        },
         "createAndAssignTask": "צור והקצה משימה",
         "createTaskDescription": "הגדר משימה חדשה והקצה אותה לחבר צוות",
         "taskName": "שם המשימה",
@@ -183,6 +222,28 @@
         "invalidEmailFormat": "פורמט אימייל לא תקין",
         "generating": "מייצר...",
         "generateCode": "צור קוד"
+    },
+    "groupTasksPanel": {
+        "title": "משימות — {{groupName}}",
+        "filters": {
+            "status": "סטטוס",
+            "allStatuses": "כל הסטטוסים",
+            "assignee": "מוקצה ל",
+            "allMembers": "כל החברים",
+            "sortBy": "מיין לפי",
+            "created": "נוצר",
+            "updated": "עודכן"
+        },
+        "loading": "טוען משימות...",
+        "noTasks": "לא נמצאו משימות.",
+        "due": "יעד: {{date}}",
+        "showingCount": "מציג {{count}} מתוך {{total}} משימות",
+        "toast": {
+            "assignSuccess": "המשימה הוקצתה בהצלחה",
+            "assignError": "הקצאת המשימה נכשלה",
+            "statusUpdateSuccess": "סטטוס המשימה עודכן בהצלחה",
+            "statusUpdateError": "עדכון סטטוס המשימה נכשל"
+        }
     },
     "errors": {
         "generic": "משהו השתבש. אנא נסה שוב.",

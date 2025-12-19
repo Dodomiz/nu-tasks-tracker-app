@@ -58,4 +58,55 @@ public class TaskRepository(IMongoDatabase database) : ITaskRepository
     {
         await _collection.ReplaceOneAsync(x => x.Id == task.Id, task, cancellationToken: ct);
     }
+
+    public async Task<(List<TaskItem> items, long total)> FindUserTasksAsync(
+        string userId,
+        int? difficulty,
+        Core.Domain.TaskStatus? status,
+        string sortBy,
+        string sortOrder,
+        int page,
+        int pageSize,
+        CancellationToken ct)
+    {
+        // Build filter for user's assigned tasks
+        var filter = Builders<TaskItem>.Filter.Eq(x => x.AssignedUserId, userId);
+
+        // Add difficulty filter if provided
+        if (difficulty.HasValue)
+        {
+            filter &= Builders<TaskItem>.Filter.Eq(x => x.Difficulty, difficulty.Value);
+        }
+
+        // Add status filter if provided
+        if (status.HasValue)
+        {
+            filter &= Builders<TaskItem>.Filter.Eq(x => x.Status, status.Value);
+        }
+
+        // Build sort definition
+        SortDefinition<TaskItem> sortDefinition = sortBy.ToLower() switch
+        {
+            "difficulty" => sortOrder.ToLower() == "desc"
+                ? Builders<TaskItem>.Sort.Descending(x => x.Difficulty)
+                : Builders<TaskItem>.Sort.Ascending(x => x.Difficulty),
+            "status" => sortOrder.ToLower() == "desc"
+                ? Builders<TaskItem>.Sort.Descending(x => x.Status)
+                : Builders<TaskItem>.Sort.Ascending(x => x.Status),
+            _ => sortOrder.ToLower() == "desc" // default to dueDate
+                ? Builders<TaskItem>.Sort.Descending(x => x.DueAt)
+                : Builders<TaskItem>.Sort.Ascending(x => x.DueAt)
+        };
+
+        var find = _collection.Find(filter);
+        var total = await find.CountDocumentsAsync(ct);
+
+        var items = await find
+            .Sort(sortDefinition)
+            .Skip((page - 1) * pageSize)
+            .Limit(pageSize)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
 }

@@ -51,6 +51,19 @@ export interface AssignTaskRequest {
   assigneeUserId: string;
 }
 
+export interface TaskWithGroup extends TaskResponse {
+  groupName: string;
+}
+
+export interface MyTasksQuery {
+  difficulty?: number;
+  status?: 'Pending' | 'InProgress' | 'Completed' | 'Overdue';
+  sortBy?: 'difficulty' | 'status' | 'dueDate';
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
 export const tasksApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getTasks: builder.query<PagedResult<TaskResponse>, TaskListQuery>({
@@ -90,6 +103,39 @@ export const tasksApi = apiSlice.injectEndpoints({
         { type: 'Task', id: 'LIST' },
       ],
     }),
+    updateTaskStatus: builder.mutation<void, { taskId: string; status: 'Pending' | 'InProgress' | 'Completed' | 'Overdue' }>({
+      query: ({ taskId, status }) => ({
+        url: `/tasks/${taskId}/status`,
+        method: 'PATCH',
+        body: { status },
+      }),
+      invalidatesTags: (_result, _error, { taskId }) => [
+        { type: 'Task', id: taskId },
+        { type: 'Task', id: 'LIST' },
+        { type: 'Task', id: 'MY_TASKS' },
+      ],
+    }),
+    getMyTasks: builder.query<PagedResult<TaskWithGroup>, MyTasksQuery>({
+      query: (params) => ({
+        url: '/tasks/my-tasks',
+        params: {
+          difficulty: params.difficulty,
+          status: params.status,
+          sortBy: params.sortBy || 'dueDate',
+          sortOrder: params.sortOrder || 'asc',
+          page: params.page || 1,
+          pageSize: params.pageSize || 50,
+        },
+      }),
+      transformResponse: (response: any) => response.data || response,
+      providesTags: (result) =>
+        result?.items
+          ? [
+              ...result.items.map((t) => ({ type: 'Task' as const, id: t.id })),
+              { type: 'Task' as const, id: 'MY_TASKS' },
+            ]
+          : [{ type: 'Task' as const, id: 'MY_TASKS' }],
+    }),
   }),
 });
 
@@ -98,4 +144,6 @@ export const {
   useCreateTaskMutation,
   useAssignTaskMutation,
   useUnassignTaskMutation,
+  useUpdateTaskStatusMutation,
+  useGetMyTasksQuery,
 } = tasksApi;

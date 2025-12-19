@@ -152,4 +152,94 @@ public class TaskService(
             task.AssignedUserId = requestingUserId;
             await taskRepository.UpdateAsync(task, ct);
         }
+
+        public async Task UpdateTaskStatusAsync(string taskId, Core.Domain.TaskStatus newStatus, string requestingUserId, CancellationToken ct)
+        {
+            var task = await taskRepository.GetByIdAsync(taskId, ct);
+            if (task == null)
+            {
+                throw new KeyNotFoundException($"Task {taskId} not found");
+            }
+
+            // Verify requesting user is either:
+            // 1. The assigned user (can update their own task status)
+            // 2. An admin of the group
+            var group = await groupRepository.GetByIdAsync(task.GroupId);
+            if (group == null)
+            {
+                throw new KeyNotFoundException($"Group {task.GroupId} not found");
+            }
+
+            var requestingMember = group.Members.FirstOrDefault(m => m.UserId == requestingUserId);
+            if (requestingMember == null)
+            {
+                throw new UnauthorizedAccessException("You must be a member of this group");
+            }
+
+            // Allow if user is the assignee OR an admin
+            var isAssignee = task.AssignedUserId == requestingUserId;
+            var isAdmin = requestingMember.Role == GroupRole.Admin;
+            
+            if (!isAssignee && !isAdmin)
+            {
+                throw new UnauthorizedAccessException("Only the assigned user or group admins can update task status");
+            }
+
+            // Update task status
+            task.Status = newStatus;
+            await taskRepository.UpdateAsync(task, ct);
+        }
+
+        public async Task<PagedResult<TaskWithGroupDto>> GetUserTasksAsync(string userId, MyTasksQuery query, CancellationToken ct)
+        {
+            // Fetch tasks from repository with filters and sorting
+            var (items, total) = await taskRepository.FindUserTasksAsync(
+                userId,
+                query.Difficulty,
+                query.Status,
+                query.SortBy,
+                query.SortOrder,
+                query.Page,
+                query.PageSize,
+                ct);
+
+            // Get distinct group IDs from tasks
+            var groupIds = items.Select(t => t.GroupId).Distinct().ToList();
+
+            // Batch fetch groups to enrich tasks with group names
+            var groupTasks = groupIds.Select(async groupId => 
+                await groupRepository.GetByIdAsync(groupId));
+            var groups = await Task.WhenAll(groupTasks);
+            var groupDictionary = groups
+                .Where(g => g != null)
+                .ToDictionary(g => g!.Id, g => g!.Name);
+
+            var nowUtc = DateTime.UtcNow;
+
+            // Map to TaskWithGroupDto
+            var mapped = items.Select(t => new TaskWithGroupDto
+            {
+                Id = t.Id,
+                GroupId = t.GroupId,
+                GroupName = groupDictionary.TryGetValue(t.GroupId, out var groupName) 
+                    ? groupName 
+                    : "Unknown Group",
+                AssignedUserId = t.AssignedUserId,
+                TemplateId = t.TemplateId,
+                Name = t.Name,
+                Description = t.Description,
+                Difficulty = t.Difficulty,
+                Status = t.Status,
+                DueAt = t.DueAt,
+                IsOverdue = t.Status != Core.Domain.TaskStatus.Completed && t.DueAt < nowUtc
+            }).ToList();
+
+            return new PagedResult<TaskWithGroupDto>
+            {
+                Page = query.Page,
+                PageSize = query.PageSize,
+                Total = total,
+                Items = mapped
+            };
+        }
 }

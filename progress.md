@@ -1,3 +1,158 @@
+## 2025-12-20 (GroupTasksPanel Hebrew Translations - COMPLETE ✅)
+- **Goal:** Add Hebrew (i18n) translations for GroupTasksPanel component
+- **Problem:** GroupTasksPanel had all hardcoded English text, including status values and UI labels
+- **Solution:** Added comprehensive translation keys and helper function to translate status enum values
+- **Translation Keys Added:**
+  - `groupTasksPanel.title`: "Tasks — {{groupName}}" / "משימות — {{groupName}}"
+  - `groupTasksPanel.filters.*`: Status, All Statuses, Assignee, All Members, Sort By, Created, Updated
+  - `groupTasksPanel.loading`: "Loading tasks..." / "טוען משימות..."
+  - `groupTasksPanel.noTasks`: "No tasks found." / "לא נמצאו משימות."
+  - `groupTasksPanel.due`: "Due: {{date}}" / "יעד: {{date}}"
+  - `groupTasksPanel.showingCount`: "Showing {{count}} of {{total}} tasks"
+  - `groupTasksPanel.toast.*`: Success/error messages for assign and status update
+  - Reused `tasks.status.*`: pending, inProgress, completed, overdue translations
+- **Implementation Details:**
+  - Added `getStatusLabel()` helper function to map status enum values to translations
+  - Translates status in 3 places:
+    1. Admin clickable status badge
+    2. Non-admin read-only status badge
+    3. Status dropdown options
+  - All UI labels use translation keys
+  - Date formatting respects language (already using `i18n.language`)
+- **Files Modified (3):**
+  - `web/public/locales/en/translation.json` - Added GroupTasksPanel English translations
+  - `web/public/locales/he/translation.json` - Added GroupTasksPanel Hebrew translations  
+  - `web/src/features/groups/components/GroupTasksPanel.tsx` - Added `getStatusLabel()`, updated all displays
+- **Result:** GroupTasksPanel fully supports English and Hebrew, including all status values
+- **Compilation:** ✅ No TypeScript errors
+
+## 2025-12-19 (Group Tasks Panel Admin Status Control - COMPLETE ✅)
+- **Goal:** Enable admins to change task status directly from Group Tasks Panel
+- **Changes:**
+  1. **Clickable Status Badge**: Status badge now clickable for admins (non-admins see regular badge)
+  2. **Status Dropdown**: Same dropdown as MyTasksTab with all 4 statuses (Pending, InProgress, Completed, Overdue)
+  3. **Admin-Only Feature**: Only group admins can change task status via this panel
+  4. **Real-time Updates**: Uses RTK Query mutation with automatic cache invalidation
+  5. **Toast Notifications**: Success/error feedback for status changes
+  6. **Loading State**: Dropdown disabled during status update
+- **Implementation Details:**
+  - Added `useUpdateTaskStatusMutation` hook
+  - Added `statusDropdownTaskId` state to track which task's dropdown is open
+  - Status badge conditionally renders as button (admin) or span (non-admin)
+  - Dropdown positioned absolutely with fixed backdrop for closing
+  - Color-coded status indicators in dropdown menu
+  - Highlights current status in dropdown
+- **Files Modified (1):**
+  - `web/src/features/groups/components/GroupTasksPanel.tsx` - Added status change functionality
+- **UX Impact:**
+  - Admins can quickly update task status without leaving the panel
+  - Maintains authorization (backend validates admin role)
+  - Consistent UI pattern across MyTasksTab and GroupTasksPanel
+  - Non-admin users see status but cannot change it
+- **Compilation:** ✅ No TypeScript errors
+
+## 2025-12-19 (Task Count Display Fix - COMPLETE ✅)
+- **Goal:** Fix "Showing 1 of {{total}} tasks" display issue in MyTasksTab
+- **Problem:** Translation interpolation wasn't working because only `count` was passed but translation key expected both `count` and `total`
+- **Solution:** Pass both parameters to i18next: `count: data.items.length` and `total: data.total`
+- **Files Modified (1):**
+  - `web/src/features/dashboard/components/MyTasksTab.tsx` - Fixed translation parameters
+- **Result:** Now correctly displays "Showing X of Y tasks"
+- **Compilation:** ✅ No TypeScript errors
+
+## 2025-12-19 (Task Status Update Backend Endpoint - COMPLETE ✅)
+- **Goal:** Implement backend PATCH endpoint for updating task status
+- **Endpoint:** `PATCH /api/tasks/{taskId}/status`
+- **Authorization:**
+  - Assigned user can update their own task status
+  - Group admins can update any task status in their group
+  - Non-members or unauthorized users receive 403 Forbidden
+- **Implementation Details:**
+  1. **UpdateTaskStatusRequest DTO**: Simple request with `Status` property (enum: Pending, InProgress, Completed, Overdue)
+  2. **ITaskService.UpdateTaskStatusAsync**: Added method signature with fully qualified `Core.Domain.TaskStatus`
+  3. **TaskService.UpdateTaskStatusAsync**: Full implementation with authorization checks:
+     - Validates task exists (404 if not found)
+     - Validates group exists (404 if not found)
+     - Validates user is group member (403 if not)
+     - Allows update if user is assignee OR group admin
+     - Updates task status in database
+  4. **TasksController PATCH endpoint**: RESTful endpoint with error handling:
+     - Returns 200 OK on success
+     - Returns 404 Not Found if task/group doesn't exist
+     - Returns 403 Forbidden if unauthorized
+- **Files Created (1):**
+  - `backend/src/TasksTracker.Api/Features/Tasks/Models/UpdateTaskStatusRequest.cs` - Request DTO
+- **Files Modified (3):**
+  - `backend/src/TasksTracker.Api/Features/Tasks/Services/ITaskService.cs` - Added method signature
+  - `backend/src/TasksTracker.Api/Features/Tasks/Services/TaskService.cs` - Implemented business logic
+  - `backend/src/TasksTracker.Api/Features/Tasks/Controllers/TasksController.cs` - Added PATCH endpoint
+- **Security Considerations:**
+  - Requires JWT authentication (`[Authorize]`)
+  - Validates user is assigned to task or is group admin
+  - Prevents unauthorized status changes
+  - Group membership verification prevents cross-group access
+- **Technical Notes:**
+  - Used fully qualified `Core.Domain.TaskStatus` to avoid conflict with `System.Threading.Tasks.TaskStatus`
+  - Follows existing controller patterns (validation, error handling, response format)
+  - Follows service layer patterns (authorization checks, repository updates)
+- **Compilation:** ✅ Backend builds successfully with 0 errors
+- **Integration:** ✅ Frontend RTK Query mutation already wired and ready to use this endpoint
+
+## 2025-12-19 (My Tasks Tab Color Scheme Fix - COMPLETE ✅)
+- **Goal:** Fix color scheme to match Groups tab style and resolve status dropdown readability issue
+- **Problem:** Dark text on dark background in status dropdown made it unreadable; gradients and fancy colors didn't match the clean Groups tab design
+- **Changes:**
+  1. **Simplified Card Design**: Removed gradients, now uses clean white background with simple border
+  2. **Fixed Status Dropdown**: Changed dropdown text to `text-gray-900` (dark gray) on white background for perfect readability
+  3. **Consistent Color Palette**: Matched Groups tab colors:
+     - Difficulty: green (easy), yellow (medium), red (hard)
+     - Status: gray (pending), blue (in progress), green (completed), red (overdue)
+     - Group badge: purple
+  4. **Removed Dark Mode Complexity**: Using simple light colors that work well without dark mode variants
+  5. **Simplified Header**: Removed gradient background, now simple title with gray subtitle
+  6. **Clean Badges**: Changed from `rounded-lg` to `rounded-full` to match Groups tab pill-style badges
+- **Files Modified (2):**
+  - `web/src/features/dashboard/components/TaskCard.tsx` - Simplified design, fixed dropdown colors
+  - `web/src/features/dashboard/components/MyTasksTab.tsx` - Removed gradient header, simplified styling
+- **UX Impact:**
+  - Status dropdown now perfectly readable with dark text on white background
+  - Visual consistency between Groups and Tasks tabs
+  - Cleaner, more professional appearance
+  - No more eye-strain from color schemes
+- **Compilation:** ✅ No TypeScript errors (verified via npm run build)
+
+## 2025-12-19 (My Tasks Tab UX Enhancements - COMPLETE ✅)
+- **Goal:** Improve My Tasks tab with interactive status changes, better typography, and friendlier colors
+- **Changes:**
+  1. **Interactive Status Change**: Clicking task status badge now shows dropdown with all 4 statuses
+     - Statuses: Pending, InProgress, Completed, Overdue
+     - Uses RTK Query mutation (updateTaskStatus) with loading spinner
+     - Dropdown closes on selection or backdrop click
+     - Updates cache automatically after status change
+  2. **Bold "Sort by" Label**: Changed sort label from font-medium to font-bold for better visibility
+  3. **Friendlier Color Scheme**:
+     - Warmer palette: emerald (easy), amber (medium), rose (hard), sky (in progress), slate (pending/completed)
+     - Gradient backgrounds: Header uses bg-gradient-to-r from-blue-50 to-indigo-50
+     - Card gradients: bg-gradient-to-br from-white to-gray-50
+     - Enhanced shadows, rounded corners (rounded-xl), better hover effects
+     - Group badges with purple-to-pink gradient
+- **Files Modified (3):**
+  - `web/src/features/tasks/api/tasksApi.ts` - Added updateTaskStatus mutation (PATCH /tasks/{taskId}/status)
+  - `web/src/features/dashboard/components/MyTasksTab.tsx` - Color scheme improvements, bold label, gradient header
+  - `web/src/features/dashboard/components/TaskCard.tsx` - Complete rewrite with status dropdown and improved design
+- **Implementation Details:**
+  - TaskCard: useState for dropdown visibility, stopPropagation on status button, backdrop overlay for dismissal
+  - API mutation invalidates 3 cache tags: specific task, LIST, and MY_TASKS
+  - Loading state shows spinner icon during update
+  - Error handling logs to console (can be extended with toast notifications)
+- **UX Impact:**
+  - Users can quickly change task status without opening task details
+  - Warmer colors create more approachable, friendly interface
+  - Better visual hierarchy with bold labels and gradients
+  - Improved hover feedback with scale and shadow transitions
+- **Compilation:** ✅ No TypeScript errors (verified via npm run build)
+- **Note:** Backend PATCH endpoint may need implementation/verification
+
 ## 2025-12-19 (Task Creation UX Improvements - COMPLETE ✅)
 - **Goal:** Improve task creation form with better defaults and translations
 - **Changes:**

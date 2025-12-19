@@ -83,6 +83,7 @@
         "title": "Dashboard",
         "welcome": "Welcome, {{name}}!",
         "myTasks": "My Tasks",
+        "myTasksDescription": "View and manage all your tasks across groups",
         "myGroups": "My Groups",
         "manageGroups": "View and manage your group tasks",
         "loading": "Loading groups",
@@ -101,6 +102,44 @@
         "taskWillBeCreatedIn": "This task will be created in this group and can be assigned to any member."
     },
     "tasks": {
+        "filters": {
+            "title": "Filters",
+            "difficulty": "Difficulty",
+            "status": "Status",
+            "clear": "Clear All Filters"
+        },
+        "sort": {
+            "label": "Sort by:",
+            "dueDateAsc": "Due Date (Earliest First)",
+            "dueDateDesc": "Due Date (Latest First)",
+            "difficultyAsc": "Difficulty (Easiest First)",
+            "difficultyDesc": "Difficulty (Hardest First)",
+            "statusAsc": "Status (A-Z)",
+            "statusDesc": "Status (Z-A)"
+        },
+        "difficulty": {
+            "easy": "Easy",
+            "medium": "Medium",
+            "hard": "Hard"
+        },
+        "status": {
+            "pending": "Pending",
+            "inProgress": "In Progress",
+            "completed": "Completed",
+            "overdue": "Overdue"
+        },
+        "emptyState": {
+            "noTasks": "No tasks found",
+            "noTasksDescription": "You don't have any tasks assigned at the moment.",
+            "noMatchingTasks": "No tasks match your filters",
+            "clearFiltersButton": "Clear filters to see all tasks"
+        },
+        "count": "Showing {{count}} of {{total}} tasks",
+        "due": "Due",
+        "overdue": "Overdue",
+        "error": {
+            "loadFailed": "Failed to load tasks. Please try again."
+        },
         "createAndAssignTask": "Create & Assign Task",
         "createTaskDescription": "Set up a new task and assign it to a team member",
         "taskName": "Task Name",
@@ -183,6 +222,28 @@
         "invalidEmailFormat": "Invalid email format",
         "generating": "Generating...",
         "generateCode": "Generate Code"
+    },
+    "groupTasksPanel": {
+        "title": "Tasks — {{groupName}}",
+        "filters": {
+            "status": "Status",
+            "allStatuses": "All Statuses",
+            "assignee": "Assignee",
+            "allMembers": "All Members",
+            "sortBy": "Sort By",
+            "created": "Created",
+            "updated": "Updated"
+        },
+        "loading": "Loading tasks...",
+        "noTasks": "No tasks found.",
+        "due": "Due: {{date}}",
+        "showingCount": "Showing {{count}} of {{total}} tasks",
+        "toast": {
+            "assignSuccess": "Task assigned successfully",
+            "assignError": "Failed to assign task",
+            "statusUpdateSuccess": "Task status updated successfully",
+            "statusUpdateError": "Failed to update task status"
+        }
     },
     "errors": {
         "generic": "Something went wrong. Please try again.",

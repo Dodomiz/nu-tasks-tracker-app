@@ -39,6 +39,35 @@ public class TasksController(ITaskService taskService) : ControllerBase
         return Ok(ApiResponse<PagedResult<TaskResponse>>.SuccessResponse(result));
     }
 
+    /// <summary>
+    /// Get all tasks assigned to the current user across all groups
+    /// </summary>
+    [HttpGet("my-tasks")]
+    [Authorize]
+    public async Task<IActionResult> GetMyTasks([FromQuery] MyTasksQuery query, CancellationToken ct)
+    {
+        // Validation
+        if (query.PageSize is < 1 or > 100) 
+            return BadRequest("PageSize must be between 1 and 100.");
+        
+        if (query.Difficulty is < 1 or > 10)
+            return BadRequest("Difficulty must be between 1 and 10.");
+
+        var validSortFields = new[] { "difficulty", "status", "duedate" };
+        if (!validSortFields.Contains(query.SortBy.ToLower()))
+            return BadRequest("SortBy must be one of: difficulty, status, dueDate");
+
+        var validSortOrders = new[] { "asc", "desc" };
+        if (!validSortOrders.Contains(query.SortOrder.ToLower()))
+            return BadRequest("SortOrder must be either asc or desc");
+
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+            ?? throw new UnauthorizedAccessException("User ID not found in token");
+
+        var result = await taskService.GetUserTasksAsync(userId, query, ct);
+        return Ok(ApiResponse<PagedResult<TaskWithGroupDto>>.SuccessResponse(result));
+    }
+
         /// <summary>
         /// Assign task to a group member (Admin only)
         /// </summary>
@@ -85,6 +114,38 @@ public class TasksController(ITaskService taskService) : ControllerBase
             {
                 await taskService.UnassignTaskAsync(taskId, userId, ct);
                 return Ok(new { message = "Task unassigned successfully" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Update task status - can be done by assigned user or group admin
+        /// </summary>
+        [HttpPatch("{taskId}/status")]
+        [Authorize]
+        public async Task<IActionResult> UpdateTaskStatus(
+            string taskId, 
+            [FromBody] UpdateTaskStatusRequest request, 
+            CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+
+            try
+            {
+                await taskService.UpdateTaskStatusAsync(taskId, request.Status, userId, ct);
+                return Ok(new { message = "Task status updated successfully" });
             }
             catch (KeyNotFoundException ex)
             {
