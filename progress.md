@@ -1,3 +1,41 @@
+## 2025-12-19 (Task Creation UX Improvements - COMPLETE ✅)
+- **Goal:** Improve task creation form with better defaults and translations
+- **Changes:**
+  1. **Due Date Default**: Changed from current time to end of day (23:59)
+     - Users creating tasks typically want them due by end of day, not at creation time
+  2. **Difficulty Default**: Changed from 1 to 5 (mid-range)
+     - More reasonable starting point for task difficulty assessment
+  3. **Modal Width**: Increased from max-w-2xl to max-w-3xl
+     - Prevents datetime input value from being cut off
+     - Better spacing for all form fields
+  4. **Translations Added**:
+     - `dashboard.createTaskInGroup`: "Create Task in {{groupName}}" / "צור משימה ב{{groupName}}"
+     - `dashboard.taskWillBeCreatedIn`: Full description in both English and Hebrew
+- **Files Modified (4):**
+  - `web/src/components/CreateTaskForm.tsx` - Updated defaults for dueAt and difficulty
+  - `web/src/components/Modal.tsx` - Increased max width
+  - `web/public/locales/en/translation.json` - Added English translations
+  - `web/public/locales/he/translation.json` - Added Hebrew translations
+- **UX Impact:**
+  - Better default values reduce user input time
+  - Wider modal improves readability
+  - Proper translations for Hebrew users
+- **Compilation:** ✅ No TypeScript errors
+
+## 2025-12-19 (Task Creation Default Due Date - COMPLETE ✅)
+- **Goal:** Set default due date to today when creating a new task
+- **Frontend Changes:**
+  - Updated CreateTaskForm component to initialize dueAt state with current date/time
+  - Created getDefaultDueDate helper function to format date for datetime-local input
+  - Format: `YYYY-MM-DDTHH:MM` (ISO 8601 compatible with datetime-local input)
+- **Files Modified (1):**
+  - `web/src/components/CreateTaskForm.tsx` - Added default due date initialization
+- **UX Improvement:** 
+  - Users no longer need to manually set the date when creating tasks due today
+  - Default value is pre-populated but still editable
+  - Reduces clicks and improves task creation workflow
+- **Compilation:** ✅ No TypeScript errors
+
 ## 2025-12-19 (Static Files Serving Configuration - COMPLETE ✅)
 - **Goal:** Configure backend to serve static files (like images/logos) from `/static` URL path
 - **Backend Changes:**

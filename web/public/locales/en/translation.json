@@ -96,7 +96,9 @@
         "joinWithCode": "Join Group",
         "createGroup": "Create Group",
         "editGroup": "Edit Group",
-        "manageMembers": "Manage Members"
+        "manageMembers": "Manage Members",
+        "createTaskInGroup": "Create Task in {{groupName}}",
+        "taskWillBeCreatedIn": "This task will be created in this group and can be assigned to any member."
     },
     "tasks": {
         "createAndAssignTask": "Create & Assign Task",

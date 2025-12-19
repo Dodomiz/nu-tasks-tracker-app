@@ -38,7 +38,7 @@ export default function Modal({ open, onClose, children, title }: ModalProps) {
         onClick={onClose}
       />
       <div
-        className="relative bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-[95%] max-w-2xl mx-auto transition-all duration-200"
+        className="relative bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-[95%] max-w-3xl mx-auto transition-all duration-200"
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold">{title}</h2>

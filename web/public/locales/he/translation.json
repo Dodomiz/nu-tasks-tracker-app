@@ -96,7 +96,9 @@
         "joinWithCode": "הצטרף לקבוצה",
         "createGroup": "צור קבוצה",
         "editGroup": "ערוך קבוצה",
-        "manageMembers": "נהל חברים"
+        "manageMembers": "נהל חברים",
+        "createTaskInGroup": "צור משימה ב{{groupName}}",
+        "taskWillBeCreatedIn": "משימה זו תיווצר בקבוצה זו וניתן להקצות אותה לכל חבר."
     },
     "tasks": {
         "createAndAssignTask": "צור והקצה משימה",

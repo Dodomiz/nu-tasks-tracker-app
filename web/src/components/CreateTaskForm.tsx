@@ -15,9 +15,19 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
   const { t } = useTranslation();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [difficulty, setDifficulty] = useState(1);
+  const [difficulty, setDifficulty] = useState(5);
   const [assignedUserId, setAssignedUserId] = useState('');
-  const [dueAt, setDueAt] = useState<string>('');
+  
+  // Set default due date to end of today (23:59)
+  const getDefaultDueDate = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}T23:59`;
+  };
+  
+  const [dueAt, setDueAt] = useState<string>(getDefaultDueDate());
   const [frequency, setFrequency] = useState<CreateTaskRequest['frequency']>('OneTime');
   const currentGroup = useAppSelector(selectCurrentGroup);
   const groupId = defaultGroupId || currentGroup?.id || null;
