@@ -156,4 +156,67 @@ public class TasksController(ITaskService taskService) : ControllerBase
                 return StatusCode(403, new { error = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Update task details (Admin only)
+        /// </summary>
+        [HttpPut("{taskId}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateTask(string taskId, [FromBody] UpdateTaskRequest request, CancellationToken ct)
+        {
+            // Basic validation
+            if (request.Difficulty.HasValue && (request.Difficulty < 1 || request.Difficulty > 10))
+            {
+                return BadRequest("Difficulty must be between 1 and 10.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 200)
+            {
+                return BadRequest("Name must not exceed 200 characters.");
+            }
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+
+            try
+            {
+                await taskService.UpdateTaskAsync(taskId, request, userId, ct);
+                return Ok(new { message = "Task updated successfully" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { error = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get task history - Admin only
+        /// </summary>
+        [HttpGet("{taskId}/history")]
+        [Authorize]
+        public async Task<IActionResult> GetTaskHistory(string taskId, CancellationToken ct)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+
+            try
+            {
+                var history = await taskService.GetTaskHistoryAsync(taskId, userId, ct);
+                return Ok(ApiResponse<List<TaskHistoryResponse>>.SuccessResponse(history));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { error = ex.Message });
+            }
+        }
 }

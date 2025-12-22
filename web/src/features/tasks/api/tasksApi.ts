@@ -51,6 +51,14 @@ export interface AssignTaskRequest {
   assigneeUserId: string;
 }
 
+export interface UpdateTaskRequest {
+  name?: string;
+  description?: string;
+  difficulty?: number;
+  dueAt?: string; // ISO
+  frequency?: 'OneTime' | 'Daily' | 'Weekly' | 'Monthly';
+}
+
 export interface TaskWithGroup extends TaskResponse {
   groupName: string;
 }
@@ -62,6 +70,18 @@ export interface MyTasksQuery {
   sortOrder?: 'asc' | 'desc';
   page?: number;
   pageSize?: number;
+}
+
+export interface TaskHistoryResponse {
+  id: string;
+  taskId: string;
+  groupId: string;
+  changedByUserId: string;
+  changedByUserName: string;
+  action: 'Created' | 'Updated' | 'StatusChanged' | 'Reassigned' | 'Deleted' | 'CompletionApproved' | 'CompletionRejected';
+  changedAt: string;
+  changes: Record<string, string>;
+  notes?: string;
 }
 
 export const tasksApi = apiSlice.injectEndpoints({
@@ -115,6 +135,19 @@ export const tasksApi = apiSlice.injectEndpoints({
         { type: 'Task', id: 'MY_TASKS' },
       ],
     }),
+    updateTask: builder.mutation<void, { taskId: string; data: UpdateTaskRequest }>({
+      query: ({ taskId, data }) => ({
+        url: `/tasks/${taskId}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { taskId }) => [
+        { type: 'Task', id: taskId },
+        { type: 'Task', id: 'LIST' },
+        { type: 'Task', id: 'MY_TASKS' },
+        { type: 'Task', id: `HISTORY-${taskId}` },
+      ],
+    }),
     getMyTasks: builder.query<PagedResult<TaskWithGroup>, MyTasksQuery>({
       query: (params) => ({
         url: '/tasks/my-tasks',
@@ -136,6 +169,11 @@ export const tasksApi = apiSlice.injectEndpoints({
             ]
           : [{ type: 'Task' as const, id: 'MY_TASKS' }],
     }),
+    getTaskHistory: builder.query<TaskHistoryResponse[], string>({
+      query: (taskId) => ({ url: `/tasks/${taskId}/history` }),
+      transformResponse: (response: any) => response.data || response,
+      providesTags: (_result, _error, taskId) => [{ type: 'Task' as const, id: `HISTORY-${taskId}` }],
+    }),
   }),
 });
 
@@ -145,5 +183,7 @@ export const {
   useAssignTaskMutation,
   useUnassignTaskMutation,
   useUpdateTaskStatusMutation,
+  useUpdateTaskMutation,
   useGetMyTasksQuery,
+  useGetTaskHistoryQuery,
 } = tasksApi;

@@ -7,7 +7,8 @@ namespace TasksTracker.Api.Features.Tasks.Services;
 public class TaskService(
     ITaskRepository taskRepository,
     IGroupRepository groupRepository,
-    IUserRepository userRepository) : ITaskService
+    IUserRepository userRepository,
+    ITaskHistoryRepository taskHistoryRepository) : ITaskService
 {
     public async Task<string> CreateAsync(CreateTaskRequest request, string currentUserId, bool isAdmin, CancellationToken ct)
     {
@@ -48,6 +49,23 @@ public class TaskService(
         };
 
         var taskId = await taskRepository.CreateAsync(task, ct);
+        
+        // Log task creation history
+        var historyEntry = await taskHistoryRepository.CreateAsync(new TaskHistory
+        {
+            TaskId = taskId,
+            GroupId = request.GroupId,
+            ChangedByUserId = currentUserId,
+            Action = TaskHistoryAction.Created,
+            Changes = new Dictionary<string, string>
+            {
+                ["Name"] = task.Name,
+                ["AssignedTo"] = task.AssignedUserId,
+                ["Difficulty"] = task.Difficulty.ToString(),
+                ["DueAt"] = task.DueAt.ToString("O"),
+                ["Status"] = task.Status.ToString()
+            }
+        });
         
         // Increment group task count
         group.TaskCount++;
@@ -121,8 +139,23 @@ public class TaskService(
             }
 
             // Update task assignment
+            var oldAssigneeId = task.AssignedUserId;
             task.AssignedUserId = assigneeUserId;
             await taskRepository.UpdateAsync(task, ct);
+            
+            // Log reassignment history
+            var historyEntry = await taskHistoryRepository.CreateAsync(new TaskHistory
+            {
+                TaskId = taskId,
+                GroupId = task.GroupId,
+                ChangedByUserId = requestingUserId,
+                Action = TaskHistoryAction.Reassigned,
+                Changes = new Dictionary<string, string>
+                {
+                    ["OldAssignee"] = oldAssigneeId,
+                    ["NewAssignee"] = assigneeUserId
+                }
+            });
         }
 
         public async Task UnassignTaskAsync(string taskId, string requestingUserId, CancellationToken ct)
@@ -186,8 +219,110 @@ public class TaskService(
             }
 
             // Update task status
+            var oldStatus = task.Status;
             task.Status = newStatus;
             await taskRepository.UpdateAsync(task, ct);
+            
+            // Log status change history
+            var historyEntry = await taskHistoryRepository.CreateAsync(new TaskHistory
+            {
+                TaskId = taskId,
+                GroupId = task.GroupId,
+                ChangedByUserId = requestingUserId,
+                Action = TaskHistoryAction.StatusChanged,
+                Changes = new Dictionary<string, string>
+                {
+                    ["OldStatus"] = oldStatus.ToString(),
+                    ["NewStatus"] = newStatus.ToString()
+                }
+            });
+        }
+
+        public async Task UpdateTaskAsync(string taskId, UpdateTaskRequest request, string requestingUserId, CancellationToken ct)
+        {
+            var task = await taskRepository.GetByIdAsync(taskId, ct);
+            if (task == null)
+            {
+                throw new KeyNotFoundException($"Task {taskId} not found");
+            }
+
+            // Verify requesting user is admin of the group
+            var group = await groupRepository.GetByIdAsync(task.GroupId);
+            if (group == null)
+            {
+                throw new KeyNotFoundException($"Group {task.GroupId} not found");
+            }
+
+            var requestingMember = group.Members.FirstOrDefault(m => m.UserId == requestingUserId);
+            if (requestingMember?.Role != GroupRole.Admin)
+            {
+                throw new UnauthorizedAccessException("Only group admins can edit tasks");
+            }
+
+            // Validate inputs if provided
+            if (request.Difficulty.HasValue && (request.Difficulty < 1 || request.Difficulty > 10))
+            {
+                throw new ArgumentException("Difficulty must be between 1 and 10.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 200)
+            {
+                throw new ArgumentException("Name must not exceed 200 characters.");
+            }
+
+            // Track changes for history
+            var changes = new Dictionary<string, string>();
+
+            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name != task.Name)
+            {
+                changes["OldName"] = task.Name;
+                changes["NewName"] = request.Name;
+                task.Name = request.Name;
+            }
+
+            if (request.Description != null && request.Description != task.Description)
+            {
+                changes["OldDescription"] = task.Description ?? "(empty)";
+                changes["NewDescription"] = request.Description;
+                task.Description = request.Description;
+            }
+
+            if (request.Difficulty.HasValue && request.Difficulty != task.Difficulty)
+            {
+                changes["OldDifficulty"] = task.Difficulty.ToString();
+                changes["NewDifficulty"] = request.Difficulty.Value.ToString();
+                task.Difficulty = request.Difficulty.Value;
+            }
+
+            if (request.DueAt.HasValue && request.DueAt != task.DueAt)
+            {
+                changes["OldDueAt"] = task.DueAt.ToString("O");
+                changes["NewDueAt"] = request.DueAt.Value.ToString("O");
+                task.DueAt = request.DueAt.Value;
+            }
+
+            if (request.Frequency.HasValue && request.Frequency != task.Frequency)
+            {
+                changes["OldFrequency"] = task.Frequency.ToString();
+                changes["NewFrequency"] = request.Frequency.Value.ToString();
+                task.Frequency = request.Frequency.Value;
+            }
+
+            // Only update if there are actual changes
+            if (changes.Count > 0)
+            {
+                await taskRepository.UpdateAsync(task, ct);
+
+                // Log update history
+                var historyEntry = await taskHistoryRepository.CreateAsync(new TaskHistory
+                {
+                    TaskId = taskId,
+                    GroupId = task.GroupId,
+                    ChangedByUserId = requestingUserId,
+                    Action = TaskHistoryAction.Updated,
+                    Changes = changes
+                });
+            }
         }
 
         public async Task<PagedResult<TaskWithGroupDto>> GetUserTasksAsync(string userId, MyTasksQuery query, CancellationToken ct)
@@ -241,5 +376,58 @@ public class TaskService(
                 Total = total,
                 Items = mapped
             };
+        }
+
+        public async Task<List<TaskHistoryResponse>> GetTaskHistoryAsync(string taskId, string requestingUserId, CancellationToken ct)
+        {
+            // Verify task exists
+            var task = await taskRepository.GetByIdAsync(taskId, ct);
+            if (task == null)
+            {
+                throw new KeyNotFoundException($"Task {taskId} not found");
+            }
+
+            // Verify user is a member of the group or admin
+            var group = await groupRepository.GetByIdAsync(task.GroupId);
+            if (group == null)
+            {
+                throw new KeyNotFoundException($"Group {task.GroupId} not found");
+            }
+
+            var requestingMember = group.Members.FirstOrDefault(m => m.UserId == requestingUserId);
+            if (requestingMember == null)
+            {
+                throw new UnauthorizedAccessException("You must be a member of this group to view task history");
+            }
+
+            // Only admins can view full history
+            if (requestingMember.Role != GroupRole.Admin)
+            {
+                throw new UnauthorizedAccessException("Only group admins can view task history");
+            }
+
+            // Get history entries
+            var historyEntries = await taskHistoryRepository.GetByTaskIdAsync(taskId, ct);
+            
+            // Get unique user IDs from history
+            var userIds = historyEntries.Select(h => h.ChangedByUserId).Distinct().ToList();
+            var users = await userRepository.GetByIdsAsync(userIds, ct);
+            var userDictionary = users.ToDictionary(u => u.Id, u => $"{u.FirstName} {u.LastName}");
+
+            // Map to response
+            return historyEntries.Select(h => new TaskHistoryResponse
+            {
+                Id = h.Id,
+                TaskId = h.TaskId,
+                GroupId = h.GroupId,
+                ChangedByUserId = h.ChangedByUserId,
+                ChangedByUserName = userDictionary.TryGetValue(h.ChangedByUserId, out var name) 
+                    ? name 
+                    : "Unknown User",
+                Action = h.Action,
+                ChangedAt = h.ChangedAt,
+                Changes = h.Changes,
+                Notes = h.Notes
+            }).ToList();
         }
 }

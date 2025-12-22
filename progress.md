@@ -1,3 +1,100 @@
+## 2025-12-20 (Task Editing Feature for Admins - COMPLETE ✅)
+- **Goal:** Enable admins to edit task details in GroupTasksPanel with full history tracking
+- **Problem:** No way for admins to modify task properties (name, description, difficulty, due date) after creation
+- **Solution:** Implemented end-to-end task editing with automatic change tracking and history logging
+- **Backend Implementation:**
+  1. Created `UpdateTaskRequest` model with optional fields (name, description, difficulty, dueAt, frequency)
+  2. Added `UpdateTaskAsync` method in TaskService with:
+     - Admin-only authorization (group admin verification)
+     - Field-level validation (difficulty 1-10, name max 200 chars)
+     - Change detection (only modified fields are updated and logged)
+     - Comprehensive history logging with old/new values for each field
+  3. Added `PUT /api/tasks/{taskId}` endpoint in TasksController
+  4. Updated `ITaskService` interface with new method signature
+- **Frontend Implementation:**
+  1. Added `UpdateTaskRequest` interface and `updateTask` mutation in tasksApi.ts
+  2. Added edit button (pencil icon) next to history button in GroupTasksPanel (Admin only)
+  3. Created edit modal with form containing:
+     - Task Name (text input, required, max 200 chars)
+     - Description (textarea, optional)
+     - Difficulty (number input, 1-10, required)
+     - Due Date (datetime-local input, required)
+  4. Smart form handling:
+     - Pre-populates with current task values
+     - Only sends changed fields to backend
+     - Shows "No changes to save" if no modifications
+  5. RTK Query cache invalidation for task list, task details, and history
+  6. Added comprehensive i18n support for English and Hebrew
+- **Translation Keys Added:**
+  - `groupTasksPanel.editTask`: "Edit Task" / "ערוך משימה"
+  - `groupTasksPanel.edit.title`: "Edit Task" / "ערוך משימה"
+  - `groupTasksPanel.edit.name/description/difficulty/dueDate`: Form field labels
+  - `groupTasksPanel.edit.cancel/save/saving`: Action button labels
+  - `groupTasksPanel.toast.updateSuccess/updateError/noChanges`: Feedback messages
+  - `groupTasksPanel.history.fields.*`: Old/new value labels (OldName, NewName, OldDescription, etc.)
+- **Files Created (1):**
+  - `backend/Features/Tasks/Models/UpdateTaskRequest.cs` - Request DTO with optional fields
+- **Files Modified (8):**
+  - `backend/Features/Tasks/Services/ITaskService.cs` - Added UpdateTaskAsync signature
+  - `backend/Features/Tasks/Services/TaskService.cs` - Implemented UpdateTaskAsync with change tracking
+  - `backend/Features/Tasks/Controllers/TasksController.cs` - Added PUT endpoint
+  - `web/src/features/tasks/api/tasksApi.ts` - Added UpdateTaskRequest interface and mutation
+  - `web/src/features/groups/components/GroupTasksPanel.tsx` - Added edit modal and handlers
+  - `web/public/locales/en/translation.json` - English translations
+  - `web/public/locales/he/translation.json` - Hebrew translations
+  - `progress.md` - Documented the implementation
+- **History Tracking:**
+  - Records all field changes with old and new values
+  - Tracks: Name, Description, Difficulty, DueAt, Frequency changes
+  - Action type: `TaskHistoryAction.Updated`
+  - Visible in task history modal with user attribution and timestamps
+- **Security:**
+  - Admin-only feature (enforced in service layer)
+  - Validates user is admin of the specific group (not global admin)
+  - Input validation on both frontend and backend
+- **Compilation:** ✅ Backend builds successfully (0 errors), Frontend has no TypeScript errors
+- **Result:** Admins can now edit task details with full audit trail of all changes
+
+## 2025-12-20 (Task History Feature - COMPLETE ✅)
+- **Goal:** Enable admins to view complete history of task changes in GroupTasksPanel
+- **Problem:** No visibility into what changes were made to tasks and who made them
+- **Solution:** Implemented end-to-end task history tracking with audit logging
+- **Backend Implementation:**
+  1. Created `TaskHistory` domain model with action types (Created, Updated, StatusChanged, Reassigned, etc.)
+  2. Created `ITaskHistoryRepository` interface and `TaskHistoryRepository` implementation
+  3. Updated `TaskService` to log history on task creation, reassignment, and status changes
+  4. Added `GET /api/tasks/{taskId}/history` endpoint (Admin only)
+  5. Registered `TaskHistoryRepository` in DI container
+- **Frontend Implementation:**
+  1. Added `useGetTaskHistoryQuery` RTK Query endpoint
+  2. Added history button (clock icon) next to each task in GroupTasksPanel (Admin only)
+  3. Created history modal displaying chronological list of changes
+  4. Shows: action type, user who made change, timestamp, field changes, and notes
+  5. Added comprehensive i18n support for English and Hebrew
+- **Translation Keys Added:**
+  - `groupTasksPanel.viewHistory`: "View History" / "צפה בהיסטוריה"
+  - `groupTasksPanel.history.title`: "Task History" / "היסטוריית משימה"
+  - `groupTasksPanel.history.actions.*`: All action types translated
+  - `groupTasksPanel.history.fields.*`: All field names translated
+- **Files Created (4):**
+  - `backend/Core/Domain/TaskHistory.cs` - Domain model
+  - `backend/Core/Interfaces/ITaskHistoryRepository.cs` - Repository interface
+  - `backend/Infrastructure/Repositories/TaskHistoryRepository.cs` - Repository implementation
+  - `backend/Features/Tasks/Models/TaskHistoryResponse.cs` - Response DTO
+- **Files Modified (8):**
+  - `backend/Features/Tasks/Services/TaskService.cs` - Added history logging
+  - `backend/Features/Tasks/Services/ITaskService.cs` - Added GetTaskHistoryAsync method
+  - `backend/Features/Tasks/Controllers/TasksController.cs` - Added history endpoint
+  - `backend/Program.cs` - Registered TaskHistoryRepository
+  - `web/src/features/tasks/api/tasksApi.ts` - Added history query endpoint
+  - `web/src/features/groups/components/GroupTasksPanel.tsx` - Added history UI
+  - `web/public/locales/en/translation.json` - English translations
+  - `web/public/locales/he/translation.json` - Hebrew translations
+- **Security:** Only group admins can view task history (enforced in service layer)
+- **Data Tracked:** All changes include old and new values for complete audit trail
+- **Compilation:** ✅ Backend builds successfully, Frontend has no TypeScript errors
+- **Result:** Admins can now see complete audit trail of all task changes with timestamps and user attribution
+
 ## 2025-12-20 (GroupTasksPanel Hebrew Translations - COMPLETE ✅)
 - **Goal:** Add Hebrew (i18n) translations for GroupTasksPanel component
 - **Problem:** GroupTasksPanel had all hardcoded English text, including status values and UI labels

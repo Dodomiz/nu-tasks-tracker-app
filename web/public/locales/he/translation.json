@@ -225,6 +225,8 @@
     },
     "groupTasksPanel": {
         "title": "משימות — {{groupName}}",
+        "viewHistory": "צפה בהיסטוריה",
+        "editTask": "ערוך משימה",
         "filters": {
             "status": "סטטוס",
             "allStatuses": "כל הסטטוסים",
@@ -242,7 +244,56 @@
             "assignSuccess": "המשימה הוקצתה בהצלחה",
             "assignError": "הקצאת המשימה נכשלה",
             "statusUpdateSuccess": "סטטוס המשימה עודכן בהצלחה",
-            "statusUpdateError": "עדכון סטטוס המשימה נכשל"
+            "statusUpdateError": "עדכון סטטוס המשימה נכשל",
+            "updateSuccess": "המשימה עודכנה בהצלחה",
+            "updateError": "עדכון המשימה נכשל",
+            "noChanges": "אין שינויים לשמירה"
+        },
+        "edit": {
+            "title": "ערוך משימה",
+            "name": "שם המשימה",
+            "description": "תיאור",
+            "difficulty": "רמת קושי (1-10)",
+            "dueDate": "תאריך יעד",
+            "cancel": "בטל",
+            "save": "שמור שינויים",
+            "saving": "שומר..."
+        },
+        "history": {
+            "title": "היסטוריית משימה",
+            "loading": "טוען היסטוריה...",
+            "noHistory": "אין היסטוריה זמינה למשימה זו.",
+            "by": "על ידי {{name}}",
+            "actions": {
+                "Created": "משימה נוצרה",
+                "Updated": "משימה עודכנה",
+                "StatusChanged": "סטטוס שונה",
+                "Reassigned": "משימה הוקצתה מחדש",
+                "Deleted": "משימה נמחקה",
+                "CompletionApproved": "השלמה אושרה",
+                "CompletionRejected": "השלמה נדחתה"
+            },
+            "fields": {
+                "Name": "שם",
+                "AssignedTo": "הוקצה ל",
+                "OldAssignee": "מוקצה קודם",
+                "NewAssignee": "מוקצה חדש",
+                "Difficulty": "רמת קושי",
+                "DueAt": "תאריך יעד",
+                "Status": "סטטוס",
+                "OldStatus": "סטטוס קודם",
+                "NewStatus": "סטטוס חדש",
+                "OldName": "שם קודם",
+                "NewName": "שם חדש",
+                "OldDescription": "תיאור קודם",
+                "NewDescription": "תיאור חדש",
+                "OldDifficulty": "רמת קושי קודמת",
+                "NewDifficulty": "רמת קושי חדשה",
+                "OldDueAt": "תאריך יעד קודם",
+                "NewDueAt": "תאריך יעד חדש",
+                "OldFrequency": "תדירות קודמת",
+                "NewFrequency": "תדירות חדשה"
+            }
         }
     },
     "errors": {

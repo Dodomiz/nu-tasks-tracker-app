@@ -225,6 +225,8 @@
     },
     "groupTasksPanel": {
         "title": "Tasks — {{groupName}}",
+        "viewHistory": "View History",
+        "editTask": "Edit Task",
         "filters": {
             "status": "Status",
             "allStatuses": "All Statuses",
@@ -242,7 +244,56 @@
             "assignSuccess": "Task assigned successfully",
             "assignError": "Failed to assign task",
             "statusUpdateSuccess": "Task status updated successfully",
-            "statusUpdateError": "Failed to update task status"
+            "statusUpdateError": "Failed to update task status",
+            "updateSuccess": "Task updated successfully",
+            "updateError": "Failed to update task",
+            "noChanges": "No changes to save"
+        },
+        "edit": {
+            "title": "Edit Task",
+            "name": "Task Name",
+            "description": "Description",
+            "difficulty": "Difficulty (1-10)",
+            "dueDate": "Due Date",
+            "cancel": "Cancel",
+            "save": "Save Changes",
+            "saving": "Saving..."
+        },
+        "history": {
+            "title": "Task History",
+            "loading": "Loading history...",
+            "noHistory": "No history available for this task.",
+            "by": "by {{name}}",
+            "actions": {
+                "Created": "Task created",
+                "Updated": "Task updated",
+                "StatusChanged": "Status changed",
+                "Reassigned": "Task reassigned",
+                "Deleted": "Task deleted",
+                "CompletionApproved": "Completion approved",
+                "CompletionRejected": "Completion rejected"
+            },
+            "fields": {
+                "Name": "Name",
+                "AssignedTo": "Assigned to",
+                "OldAssignee": "Previous assignee",
+                "NewAssignee": "New assignee",
+                "Difficulty": "Difficulty",
+                "DueAt": "Due date",
+                "Status": "Status",
+                "OldStatus": "Previous status",
+                "NewStatus": "New status",
+                "OldName": "Previous name",
+                "NewName": "New name",
+                "OldDescription": "Previous description",
+                "NewDescription": "New description",
+                "OldDifficulty": "Previous difficulty",
+                "NewDifficulty": "New difficulty",
+                "OldDueAt": "Previous due date",
+                "NewDueAt": "New due date",
+                "OldFrequency": "Previous frequency",
+                "NewFrequency": "New frequency"
+            }
         }
     },
     "errors": {
