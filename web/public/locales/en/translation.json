@@ -126,7 +126,9 @@
             "pending": "Pending",
             "inProgress": "In Progress",
             "completed": "Completed",
-            "overdue": "Overdue"
+            "overdue": "Overdue",
+            "waitingForApproval": "Waiting for Approval",
+            "changeLabel": "Change status"
         },
         "emptyState": {
             "noTasks": "No tasks found",
@@ -137,6 +139,7 @@
         "count": "Showing {{count}} of {{total}} tasks",
         "due": "Due",
         "overdue": "Overdue",
+        "requiresAdminApproval": "This task requires admin approval to complete",
         "error": {
             "loadFailed": "Failed to load tasks. Please try again."
         },
@@ -163,7 +166,14 @@
         "creating": "Creating...",
         "createTask": "Create Task",
         "taskCreated": "Task created!",
-        "errorCreatingTask": "Error creating task"
+        "errorCreatingTask": "Error creating task",
+        "approval": {
+            "requiresApproval": "Requires Admin Approval",
+            "requiresApprovalDescription": "If enabled, only admins can mark this task as completed",
+            "tooltip": "Requires admin approval",
+            "enabled": "Approval required",
+            "disabled": "No approval required"
+        }
     },
     "settings": {
         "title": "Settings",
@@ -294,6 +304,22 @@
                 "OldFrequency": "Previous frequency",
                 "NewFrequency": "New frequency"
             }
+        }
+    },
+    "notifications": {
+        "title": "Notifications",
+        "markAllAsRead": "Mark all as read",
+        "markingAllAsRead": "Marking...",
+        "empty": "No notifications",
+        "error": "Failed to load notifications",
+        "retry": "Retry",
+        "types": {
+            "TASK_ASSIGNED": "Task assigned to you",
+            "TASK_STATUS_CHANGED": "Task status changed",
+            "TASK_PENDING_APPROVAL": "Task pending approval",
+            "GROUP_MEMBER_JOINED": "New member joined group",
+            "GROUP_MEMBER_REMOVED": "Member removed from group",
+            "GROUP_INVITATION_RECEIVED": "Group invitation received"
         }
     },
     "errors": {

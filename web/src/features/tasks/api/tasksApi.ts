@@ -9,9 +9,10 @@ export interface TaskResponse {
   name: string;
   description?: string;
   difficulty: number;
-  status: 'Pending' | 'InProgress' | 'Completed' | 'Overdue';
+  status: 'Pending' | 'InProgress' | 'Completed' | 'Overdue' | 'WaitingForApproval';
   dueAt: string;
   isOverdue: boolean;
+  requiresApproval: boolean;
 }
 
 export interface TaskWithAssignee extends TaskResponse {
@@ -27,7 +28,7 @@ export interface PagedResult<T> {
 
 export interface TaskListQuery {
   groupId?: string;
-  status?: 'Pending' | 'InProgress' | 'Completed' | 'Overdue';
+  status?: 'Pending' | 'InProgress' | 'Completed' | 'Overdue' | 'WaitingForApproval';
   assignedTo?: string;
   categoryId?: string;
   sortBy?: 'CreatedAt' | 'UpdatedAt';
@@ -45,6 +46,7 @@ export interface CreateTaskRequest {
   difficulty: number;
   dueAt: string; // ISO
   frequency: 'OneTime' | 'Daily' | 'Weekly' | 'Monthly';
+  requiresApproval?: boolean;
 }
 
 export interface AssignTaskRequest {
@@ -57,6 +59,7 @@ export interface UpdateTaskRequest {
   difficulty?: number;
   dueAt?: string; // ISO
   frequency?: 'OneTime' | 'Daily' | 'Weekly' | 'Monthly';
+  requiresApproval?: boolean;
 }
 
 export interface TaskWithGroup extends TaskResponse {
@@ -65,7 +68,7 @@ export interface TaskWithGroup extends TaskResponse {
 
 export interface MyTasksQuery {
   difficulty?: number;
-  status?: 'Pending' | 'InProgress' | 'Completed' | 'Overdue';
+  status?: 'Pending' | 'InProgress' | 'Completed' | 'Overdue' | 'WaitingForApproval';
   sortBy?: 'difficulty' | 'status' | 'dueDate';
   sortOrder?: 'asc' | 'desc';
   page?: number;
@@ -123,7 +126,7 @@ export const tasksApi = apiSlice.injectEndpoints({
         { type: 'Task', id: 'LIST' },
       ],
     }),
-    updateTaskStatus: builder.mutation<void, { taskId: string; status: 'Pending' | 'InProgress' | 'Completed' | 'Overdue' }>({
+    updateTaskStatus: builder.mutation<void, { taskId: string; status: 'Pending' | 'InProgress' | 'Completed' | 'Overdue' | 'WaitingForApproval' }>({
       query: ({ taskId, status }) => ({
         url: `/tasks/${taskId}/status`,
         method: 'PATCH',

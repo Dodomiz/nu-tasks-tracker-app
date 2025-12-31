@@ -1,6 +1,8 @@
 using TasksTracker.Api.Core.Domain;
 using TasksTracker.Api.Core.Interfaces;
 using TasksTracker.Api.Features.Tasks.Models;
+using TasksTracker.Api.Features.Notifications.Services;
+using TasksTracker.Api.Features.Notifications.Models;
 
 namespace TasksTracker.Api.Features.Tasks.Services;
 
@@ -8,7 +10,9 @@ public class TaskService(
     ITaskRepository taskRepository,
     IGroupRepository groupRepository,
     IUserRepository userRepository,
-    ITaskHistoryRepository taskHistoryRepository) : ITaskService
+    ITaskHistoryRepository taskHistoryRepository,
+    NotificationService notificationService,
+    ILogger<TaskService> logger) : ITaskService
 {
     public async Task<string> CreateAsync(CreateTaskRequest request, string currentUserId, bool isAdmin, CancellationToken ct)
     {
@@ -29,6 +33,10 @@ public class TaskService(
         if (assignedMember == null)
             throw new ArgumentException("Assigned user must be a member of this group");
 
+        // Validate approval requirement: only admins can create approval-required tasks
+        if (request.RequiresApproval && currentMember.Role != GroupRole.Admin)
+            throw new UnauthorizedAccessException("Only group admins can create tasks that require approval");
+
         if (string.IsNullOrWhiteSpace(request.Name))
             throw new ArgumentException("Name is required.");
 
@@ -45,6 +53,7 @@ public class TaskService(
             Difficulty = request.Difficulty,
             DueAt = request.DueAt,
             Frequency = request.Frequency,
+            RequiresApproval = request.RequiresApproval,
             CreatedByUserId = currentUserId
         };
 
@@ -66,6 +75,34 @@ public class TaskService(
                 ["Status"] = task.Status.ToString()
             }
         });
+        
+        // Create notification for assigned user (if not self-assigned)
+        if (request.AssignedUserId != currentUserId)
+        {
+            try
+            {
+                var assignerUser = await userRepository.GetByIdAsync(currentUserId);
+                await notificationService.CreateNotificationAsync(new CreateNotificationRequest(
+                    UserId: request.AssignedUserId,
+                    Type: NotificationType.TASK_ASSIGNED,
+                    Content: new NotificationContentDto(
+                        Title: "New Task Assigned",
+                        Body: $"{assignerUser?.FirstName} {assignerUser?.LastName} assigned you a task: {task.Name}",
+                        Metadata: new Dictionary<string, object>
+                        {
+                            ["taskId"] = taskId,
+                            ["taskName"] = task.Name,
+                            ["groupId"] = request.GroupId
+                        }
+                    )
+                ), ct);
+            }
+            catch (Exception ex)
+            {
+                // Don't let notification failure block task creation
+                logger.LogError(ex, "Failed to create TASK_ASSIGNED notification for task {TaskId}", taskId);
+            }
+        }
         
         // Increment group task count
         group.TaskCount++;
@@ -98,7 +135,8 @@ public class TaskService(
             Difficulty = t.Difficulty,
             Status = t.Status,
             DueAt = t.DueAt,
-            IsOverdue = t.Status != Core.Domain.TaskStatus.Completed && t.DueAt < nowUtc
+            IsOverdue = t.Status != Core.Domain.TaskStatus.Completed && t.DueAt < nowUtc,
+            RequiresApproval = t.RequiresApproval
         }).ToList();
 
         return new PagedResult<TaskResponse>
@@ -218,6 +256,12 @@ public class TaskService(
                 throw new UnauthorizedAccessException("Only the assigned user or group admins can update task status");
             }
 
+            // Approval validation: only admins can mark approval-required tasks as Completed
+            if (task.RequiresApproval && newStatus == Core.Domain.TaskStatus.Completed && !isAdmin)
+            {
+                throw new UnauthorizedAccessException("Only group admins can mark approval-required tasks as completed");
+            }
+
             // Update task status
             var oldStatus = task.Status;
             task.Status = newStatus;
@@ -236,6 +280,66 @@ public class TaskService(
                     ["NewStatus"] = newStatus.ToString()
                 }
             });
+            
+            // Create notifications
+            try
+            {
+                var changerUser = await userRepository.GetByIdAsync(requestingUserId);
+                
+                // Notify task creator of status change (if not self-changed)
+                if (task.CreatedByUserId != requestingUserId && !string.IsNullOrEmpty(task.CreatedByUserId))
+                {
+                    await notificationService.CreateNotificationAsync(new CreateNotificationRequest(
+                        UserId: task.CreatedByUserId,
+                        Type: NotificationType.TASK_STATUS_CHANGED,
+                        Content: new NotificationContentDto(
+                            Title: "Task Status Changed",
+                            Body: $"{changerUser?.FirstName} {changerUser?.LastName} changed task '{task.Name}' status from {oldStatus} to {newStatus}",
+                            Metadata: new Dictionary<string, object>
+                            {
+                                ["taskId"] = taskId,
+                                ["taskName"] = task.Name,
+                                ["oldStatus"] = oldStatus.ToString(),
+                                ["newStatus"] = newStatus.ToString()
+                            }
+                        )
+                    ), ct);
+                }
+                
+                // If task requires approval and status changed to Completed by non-admin (which should be blocked above),
+                // OR if task has RequiresApproval and is transitioning to WaitingForApproval
+                if (task.RequiresApproval && newStatus == Core.Domain.TaskStatus.WaitingForApproval)
+                {
+                    // Notify all group admins
+                    var groupAdmins = group.Members
+                        .Where(m => m.Role == GroupRole.Admin && m.UserId != requestingUserId)
+                        .Select(m => m.UserId)
+                        .ToList();
+                    
+                    foreach (var adminId in groupAdmins)
+                    {
+                        await notificationService.CreateNotificationAsync(new CreateNotificationRequest(
+                            UserId: adminId,
+                            Type: NotificationType.TASK_PENDING_APPROVAL,
+                            Content: new NotificationContentDto(
+                                Title: "Task Pending Approval",
+                                Body: $"{changerUser?.FirstName} {changerUser?.LastName} submitted task '{task.Name}' for approval",
+                                Metadata: new Dictionary<string, object>
+                                {
+                                    ["taskId"] = taskId,
+                                    ["taskName"] = task.Name,
+                                    ["submitterId"] = requestingUserId
+                                }
+                            )
+                        ), ct);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Don't let notification failure block status update
+                logger.LogError(ex, "Failed to create notifications for task status change {TaskId}", taskId);
+            }
         }
 
         public async Task UpdateTaskAsync(string taskId, UpdateTaskRequest request, string requestingUserId, CancellationToken ct)
@@ -308,6 +412,13 @@ public class TaskService(
                 task.Frequency = request.Frequency.Value;
             }
 
+            if (request.RequiresApproval.HasValue && request.RequiresApproval != task.RequiresApproval)
+            {
+                changes["OldRequiresApproval"] = task.RequiresApproval.ToString();
+                changes["NewRequiresApproval"] = request.RequiresApproval.Value.ToString();
+                task.RequiresApproval = request.RequiresApproval.Value;
+            }
+
             // Only update if there are actual changes
             if (changes.Count > 0)
             {
@@ -366,7 +477,8 @@ public class TaskService(
                 Difficulty = t.Difficulty,
                 Status = t.Status,
                 DueAt = t.DueAt,
-                IsOverdue = t.Status != Core.Domain.TaskStatus.Completed && t.DueAt < nowUtc
+                IsOverdue = t.Status != Core.Domain.TaskStatus.Completed && t.DueAt < nowUtc,
+                RequiresApproval = t.RequiresApproval
             }).ToList();
 
             return new PagedResult<TaskWithGroupDto>

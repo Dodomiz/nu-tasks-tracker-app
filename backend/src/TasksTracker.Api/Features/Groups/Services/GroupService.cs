@@ -3,12 +3,15 @@ using TasksTracker.Api.Core.Domain;
 using TasksTracker.Api.Core.Interfaces;
 using TasksTracker.Api.Features.Groups.Extensions;
 using TasksTracker.Api.Features.Groups.Models;
+using TasksTracker.Api.Features.Notifications.Services;
+using TasksTracker.Api.Features.Notifications.Models;
 
 namespace TasksTracker.Api.Features.Groups.Services;
 
 public class GroupService(
     IGroupRepository groupRepository,
     IUserRepository userRepository,
+    NotificationService notificationService,
     ILogger<GroupService> logger) : IGroupService
 {
     public async Task<GroupResponse> CreateGroupAsync(CreateGroupRequest request, string userId)
@@ -306,6 +309,54 @@ public class GroupService(
 
         logger.LogInformation("User {TargetUserId} removed from group {GroupId} by {RequestingUserId}", 
             targetUserId, groupId, requestingUserId);
+        
+        // Create notifications
+        try
+        {
+            var removerUser = await userRepository.GetByIdAsync(requestingUserId);
+            var removedUser = await userRepository.GetByIdAsync(targetUserId);
+            
+            // Notify removed member
+            await notificationService.CreateNotificationAsync(new CreateNotificationRequest(
+                UserId: targetUserId,
+                Type: NotificationType.GROUP_MEMBER_REMOVED,
+                Content: new NotificationContentDto(
+                    Title: "Removed from Group",
+                    Body: $"You have been removed from group '{group.Name}' by {removerUser?.FirstName} {removerUser?.LastName}",
+                    Metadata: new Dictionary<string, object>
+                    {
+                        ["groupId"] = groupId,
+                        ["groupName"] = group.Name
+                    }
+                )
+            ));
+            
+            // Notify remaining group members
+            foreach (var member in group.Members)
+            {
+                if (member.UserId != requestingUserId) // Don't notify the admin who removed
+                {
+                    await notificationService.CreateNotificationAsync(new CreateNotificationRequest(
+                        UserId: member.UserId,
+                        Type: NotificationType.GROUP_MEMBER_REMOVED,
+                        Content: new NotificationContentDto(
+                            Title: "Member Removed from Group",
+                            Body: $"{removedUser?.FirstName} {removedUser?.LastName} was removed from group '{group.Name}'",
+                            Metadata: new Dictionary<string, object>
+                            {
+                                ["groupId"] = groupId,
+                                ["groupName"] = group.Name,
+                                ["removedUserId"] = targetUserId
+                            }
+                        )
+                    ));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to create GROUP_MEMBER_REMOVED notifications for group {GroupId}", groupId);
+        }
     }
 
     private async Task PopulateMemberDetailsAsync(List<MemberDto> members)

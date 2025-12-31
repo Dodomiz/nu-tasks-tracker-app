@@ -3,6 +3,8 @@ using TasksTracker.Api.Core.Domain;
 using TasksTracker.Api.Core.Interfaces;
 using TasksTracker.Api.Core.Services;
 using TasksTracker.Api.Features.Groups.Models;
+using TasksTracker.Api.Features.Notifications.Services;
+using TasksTracker.Api.Features.Notifications.Models;
 
 namespace TasksTracker.Api.Features.Groups.Services;
 
@@ -14,6 +16,7 @@ public partial class CodeInvitesService(
     IGroupRepository groupRepository,
     IUserRepository userRepository,
     CodeGeneratorService codeGenerator,
+    NotificationService notificationService,
     ILogger<CodeInvitesService> logger) : ICodeInvitesService
 {
     private const int MaxEmailLength = 254;
@@ -100,6 +103,37 @@ public partial class CodeInvitesService(
         logger.LogInformation(
             "Code invitation created: Code={Code}, GroupId={GroupId}, Email={Email}",
             code, groupId, email ?? "any");
+        
+        // Create notification if email is specified and user exists
+        if (!string.IsNullOrEmpty(email))
+        {
+            try
+            {
+                var targetUser = await userRepository.GetByEmailAsync(email);
+                if (targetUser != null)
+                {
+                    var inviterUser = await userRepository.GetByIdAsync(adminUserId);
+                    await notificationService.CreateNotificationAsync(new CreateNotificationRequest(
+                        UserId: targetUser.Id,
+                        Type: NotificationType.GROUP_INVITATION_RECEIVED,
+                        Content: new NotificationContentDto(
+                            Title: "Group Invitation Received",
+                            Body: $"{inviterUser?.FirstName} {inviterUser?.LastName} invited you to join '{group.Name}'",
+                            Metadata: new Dictionary<string, object>
+                            {
+                                ["groupId"] = groupId,
+                                ["groupName"] = group.Name,
+                                ["inviteCode"] = code
+                            }
+                        )
+                    ), cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to create GROUP_INVITATION_RECEIVED notification for code {Code}", code);
+            }
+        }
 
         return new CodeInviteResponse
         {
@@ -191,6 +225,35 @@ public partial class CodeInvitesService(
         logger.LogInformation(
             "Code invitation redeemed: Code={Code}, UserId={UserId}, GroupId={GroupId}",
             code, userId, invite.GroupId);
+        
+        // Create notifications
+        try
+        {
+            var joiningUser = await userRepository.GetByIdAsync(userId);
+            
+            // Notify existing group members about new member
+            foreach (var member in group.Members.Where(m => m.UserId != userId))
+            {
+                await notificationService.CreateNotificationAsync(new CreateNotificationRequest(
+                    UserId: member.UserId,
+                    Type: NotificationType.GROUP_MEMBER_JOINED,
+                    Content: new NotificationContentDto(
+                        Title: "New Member Joined",
+                        Body: $"{joiningUser?.FirstName} {joiningUser?.LastName} joined group '{group.Name}'",
+                        Metadata: new Dictionary<string, object>
+                        {
+                            ["groupId"] = group.Id,
+                            ["groupName"] = group.Name,
+                            ["newMemberId"] = userId
+                        }
+                    )
+                ), cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to create GROUP_MEMBER_JOINED notifications for group {GroupId}", group.Id);
+        }
 
         return new RedeemCodeInviteResponse
         {

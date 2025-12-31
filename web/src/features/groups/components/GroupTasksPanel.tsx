@@ -8,6 +8,7 @@ import { formatDate } from '@/utils/dateFormatter';
 import { toast } from 'react-hot-toast';
 import type { Role } from '@/types/group';
 import type { TaskResponse, UpdateTaskRequest } from '@/features/tasks/api/tasksApi';
+import { ApprovalIndicator } from '@/components/ApprovalIndicator';
 
 interface GroupTasksPanelProps {
   groupId: string;
@@ -18,11 +19,11 @@ interface GroupTasksPanelProps {
   onClose: () => void;
 }
 
-type TaskStatus = 'Pending' | 'InProgress' | 'Completed' | 'Overdue' | 'All';
+type TaskStatus = 'Pending' | 'InProgress' | 'Completed' | 'Overdue' | 'WaitingForApproval' | 'All';
 type SortOption = 'CreatedAt' | 'UpdatedAt';
 type SortOrder = 'asc' | 'desc';
 
-export default function GroupTasksPanel({ groupId, groupName, myRole, isOpen, onClose }: GroupTasksPanelProps) {
+export default function GroupTasksPanel({ groupId, groupName, myRole, currentUserId, isOpen, onClose }: GroupTasksPanelProps) {
   const { t, i18n } = useTranslation();
   const isAdmin = myRole === 'Admin';
 
@@ -56,12 +57,27 @@ export default function GroupTasksPanel({ groupId, groupName, myRole, isOpen, on
   });
 
   const tasks = tasksData?.items || [];
-  const statuses: Array<'Pending' | 'InProgress' | 'Completed' | 'Overdue'> = [
-    'Pending',
-    'InProgress',
-    'Completed',
-    'Overdue',
-  ];
+
+  // Helper to get available statuses for a task based on approval requirement and user role
+  const getAvailableStatuses = (task: TaskResponse): Array<'Pending' | 'InProgress' | 'Completed' | 'Overdue' | 'WaitingForApproval'> => {
+    if (task.requiresApproval) {
+      // For approval-required tasks
+      if (isAdmin) {
+        // Admins can use all statuses including WaitingForApproval and Completed
+        return ['Pending', 'InProgress', 'WaitingForApproval', 'Completed'];
+      } else {
+        // Regular members cannot mark as Completed, only WaitingForApproval
+        return ['Pending', 'InProgress', 'WaitingForApproval'];
+      }
+    } else {
+      // Standard tasks: existing behavior
+      if (isAdmin || task.assignedUserId === currentUserId) {
+        return ['Pending', 'InProgress', 'Completed'];
+      } else {
+        return ['Pending', 'InProgress'];
+      }
+    }
+  };
 
   // Create member map for quick lookup
   const memberMap = useMemo(() => {
@@ -79,7 +95,7 @@ export default function GroupTasksPanel({ groupId, groupName, myRole, isOpen, on
     }
   };
 
-  const handleStatusChange = async (taskId: string, newStatus: typeof statuses[number]) => {
+  const handleStatusChange = async (taskId: string, newStatus: 'Pending' | 'InProgress' | 'Completed' | 'Overdue' | 'WaitingForApproval') => {
     try {
       await updateTaskStatus({ taskId, status: newStatus }).unwrap();
       setStatusDropdownTaskId(null);
@@ -97,6 +113,7 @@ export default function GroupTasksPanel({ groupId, groupName, myRole, isOpen, on
       description: task.description,
       difficulty: task.difficulty,
       dueAt: new Date(task.dueAt).toISOString().slice(0, 16), // Format for datetime-local input
+      requiresApproval: task.requiresApproval,
     });
   };
 
@@ -127,6 +144,9 @@ export default function GroupTasksPanel({ groupId, groupName, myRole, isOpen, on
           updateData.dueAt = newDueAt;
         }
       }
+      if (editFormData.requiresApproval !== undefined && editFormData.requiresApproval !== editingTask.requiresApproval) {
+        updateData.requiresApproval = editFormData.requiresApproval;
+      }
 
       // Only send if there are changes
       if (Object.keys(updateData).length > 0) {
@@ -151,6 +171,8 @@ export default function GroupTasksPanel({ groupId, groupName, myRole, isOpen, on
         return 'bg-blue-100 text-blue-800';
       case 'Overdue':
         return 'bg-red-100 text-red-800';
+      case 'WaitingForApproval':
+        return 'bg-amber-100 text-amber-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -166,6 +188,8 @@ export default function GroupTasksPanel({ groupId, groupName, myRole, isOpen, on
         return t('tasks.status.completed');
       case 'Overdue':
         return t('tasks.status.overdue');
+      case 'WaitingForApproval':
+        return t('tasks.status.waitingForApproval');
       default:
         return status;
     }
@@ -245,6 +269,7 @@ export default function GroupTasksPanel({ groupId, groupName, myRole, isOpen, on
                           <option value="All">{t('groupTasksPanel.filters.allStatuses')}</option>
                           <option value="Pending">{t('tasks.status.pending')}</option>
                           <option value="InProgress">{t('tasks.status.inProgress')}</option>
+                          <option value="WaitingForApproval">{t('tasks.status.waitingForApproval')}</option>
                           <option value="Completed">{t('tasks.status.completed')}</option>
                           <option value="Overdue">{t('tasks.status.overdue')}</option>
                         </select>
@@ -312,9 +337,15 @@ export default function GroupTasksPanel({ groupId, groupName, myRole, isOpen, on
                         >
                           {/* Task Info */}
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                              {task.name}
-                            </h4>
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                {task.name}
+                              </h4>
+                              <ApprovalIndicator 
+                                requiresApproval={task.requiresApproval} 
+                                size="sm"
+                              />
+                            </div>
                             <div className="flex items-center gap-2 mt-1">
                               {/* Status Badge - Clickable for admins */}
                               {isAdmin ? (
@@ -337,8 +368,8 @@ export default function GroupTasksPanel({ groupId, groupName, myRole, isOpen, on
                                         className="fixed inset-0 z-10"
                                         onClick={() => setStatusDropdownTaskId(null)}
                                       />
-                                      <div className="absolute z-20 mt-1 left-0 w-32 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                                        {statuses.map((status) => (
+                                      <div className="absolute z-20 mt-1 left-0 w-40 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                                        {getAvailableStatuses(task).map((status) => (
                                           <button
                                             key={status}
                                             onClick={() => handleStatusChange(task.id, status)}
@@ -612,6 +643,30 @@ export default function GroupTasksPanel({ groupId, groupName, myRole, isOpen, on
                           required
                         />
                       </div>
+
+                      {/* Approval Checkbox (Admin Only) */}
+                      {isAdmin && (
+                        <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
+                          <input
+                            type="checkbox"
+                            id="edit-requiresApproval"
+                            checked={editFormData.requiresApproval || false}
+                            onChange={(e) => setEditFormData({ ...editFormData, requiresApproval: e.target.checked })}
+                            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                          />
+                          <div className="flex-1">
+                            <label
+                              htmlFor="edit-requiresApproval"
+                              className="text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer"
+                            >
+                              {t('tasks.approval.requiresApproval')}
+                            </label>
+                            <p className="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
+                              {t('tasks.approval.requiresApprovalDescription')}
+                            </p>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Action Buttons */}
                       <div className="flex justify-end gap-3 mt-6">

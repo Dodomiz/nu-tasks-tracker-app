@@ -5,6 +5,7 @@ import { useLogoutMutation } from '@/features/auth/authApi';
 import { logout } from '@/features/auth/authSlice';
 import { useNavigate, Routes, Route, Navigate } from 'react-router-dom';
 import LanguageSelector from '@/components/LanguageSelector';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { useRTL } from '@/hooks/useRTL';
 import DashboardNavigation from '../components/DashboardNavigation';
 import MyGroupsTab from '../components/MyGroupsTab';
@@ -40,6 +41,7 @@ export default function DashboardPage() {
             </div>
             <div className={isRTL ? 'flex items-center gap-4 flex-row-reverse' : 'flex items-center gap-4'}>
               <LanguageSelector />
+              <NotificationBell />
               <span className="text-gray-700">
                 {user?.firstName} {user?.lastName}
               </span>

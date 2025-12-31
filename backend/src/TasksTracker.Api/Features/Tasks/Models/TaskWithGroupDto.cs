@@ -19,4 +19,5 @@ public record TaskWithGroupDto
     public TaskStatus Status { get; init; }
     public DateTime DueAt { get; init; }
     public bool IsOverdue { get; init; }
+    public bool RequiresApproval { get; init; }
 }

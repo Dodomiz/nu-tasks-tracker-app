@@ -9,4 +9,5 @@ public class UpdateTaskRequest
     public int? Difficulty { get; set; }
     public DateTime? DueAt { get; set; }
     public TaskFrequency? Frequency { get; set; }
+    public bool? RequiresApproval { get; set; }
 }

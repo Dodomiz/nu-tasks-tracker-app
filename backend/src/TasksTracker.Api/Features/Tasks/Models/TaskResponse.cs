@@ -14,4 +14,5 @@ public class TaskResponse
     public Core.Domain.TaskStatus Status { get; set; }
     public DateTime DueAt { get; set; }
     public bool IsOverdue { get; set; }
+    public bool RequiresApproval { get; set; }
 }

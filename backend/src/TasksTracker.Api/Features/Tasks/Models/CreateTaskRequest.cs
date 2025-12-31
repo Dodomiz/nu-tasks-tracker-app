@@ -12,6 +12,7 @@ public class CreateTaskRequest
     public int Difficulty { get; set; }
     public DateTime DueAt { get; set; }
     public TaskFrequency Frequency { get; set; } = TaskFrequency.OneTime;
+    public bool RequiresApproval { get; set; } = false;
 }
 
     public class AssignTaskRequest

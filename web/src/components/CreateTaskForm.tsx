@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useCreateTaskMutation, type CreateTaskRequest } from '@/app/api/tasksApi';
+import { useCreateTaskMutation } from '@/features/tasks/api/tasksApi';
+import type { CreateTaskRequest } from '@/features/tasks/api/tasksApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { selectCurrentGroup } from '@/features/groups/groupSlice';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +18,7 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
   const [description, setDescription] = useState('');
   const [difficulty, setDifficulty] = useState(5);
   const [assignedUserId, setAssignedUserId] = useState('');
+  const [requiresApproval, setRequiresApproval] = useState(false);
   
   // Set default due date to end of today (23:59)
   const getDefaultDueDate = () => {
@@ -54,6 +56,7 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
       difficulty,
       dueAt: dueAtISO,
       frequency,
+      requiresApproval,
     };
     
     try {
@@ -65,6 +68,7 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
       setAssignedUserId('');
       setDueAt('');
       setFrequency('OneTime');
+      setRequiresApproval(false);
       onSuccess?.();
     } catch (err: any) {
       setShakeKey((k) => k + 1);
@@ -219,6 +223,33 @@ export default function CreateTaskForm({ defaultGroupId, onSuccess, onError }: P
             </select>
           </div>
         </div>
+
+        {/* Approval Checkbox (Admin Only) */}
+        {currentGroup?.myRole === 'Admin' && (
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-700">
+            <input
+              type="checkbox"
+              id="requiresApproval"
+              checked={requiresApproval}
+              onChange={(e) => setRequiresApproval(e.target.checked)}
+              className="mt-1 h-5 w-5 rounded border-gray-300 text-amber-600 focus:ring-amber-500 focus:ring-2"
+            />
+            <div className="flex-1">
+              <label
+                htmlFor="requiresApproval"
+                className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-gray-100 cursor-pointer"
+              >
+                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                {t('tasks.approval.requiresApproval')}
+              </label>
+              <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                {t('tasks.approval.requiresApprovalDescription')}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Actions Footer */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">

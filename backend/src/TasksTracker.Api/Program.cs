@@ -89,6 +89,10 @@ builder.Services.AddScoped<TasksTracker.Api.Features.Distribution.Services.IDist
 builder.Services.AddScoped<TasksTracker.Api.Features.Distribution.Services.AIDistributionEngine>();
 builder.Services.AddScoped<TasksTracker.Api.Features.Distribution.Services.RuleBasedDistributor>();
 
+// Register Notification Services (FR-029)
+builder.Services.AddScoped<TasksTracker.Api.Features.Notifications.Repositories.NotificationRepository>();
+builder.Services.AddScoped<TasksTracker.Api.Features.Notifications.Services.NotificationService>();
+
 // Register Feature Flag Service (FR-024 Sprint 3)
 builder.Services.AddSingleton<TasksTracker.Api.Infrastructure.FeatureFlags.IFeatureFlagService, TasksTracker.Api.Infrastructure.FeatureFlags.PercentageFeatureFlagService>();
 

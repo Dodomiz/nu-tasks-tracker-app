@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using TasksTracker.Api.Core.Domain;
 using TasksTracker.Api.Core.Interfaces;
 using TasksTracker.Api.Features.Tasks.Models;
 using TasksTracker.Api.Features.Tasks.Services;
+using TasksTracker.Api.Features.Notifications.Services;
 
 namespace TasksTracker.Api.Tests.Tasks;
 
@@ -41,8 +43,12 @@ public class TaskServiceTests
             .ReturnsAsync(group);
             
         var userRepo = new Mock<IUserRepository>();
+        var historyRepo = new Mock<ITaskHistoryRepository>();
+        historyRepo.Setup(r => r.CreateAsync(It.IsAny<TaskHistory>())).ReturnsAsync(new TaskHistory { Id = "historyId" });
+        var notificationService = new Mock<NotificationService>();
+        var logger = new Mock<ILogger<TaskService>>();
 
-        var service = new TaskService(taskRepo.Object, groupRepo.Object, userRepo.Object);
+        var service = new TaskService(taskRepo.Object, groupRepo.Object, userRepo.Object, historyRepo.Object, notificationService.Object, logger.Object);
         var request = new CreateTaskRequest
         {
             GroupId = "507f1f77bcf86cd799439012",
@@ -80,8 +86,12 @@ public class TaskServiceTests
         groupRepo.Setup(r => r.GetByIdAsync(groupId))
             .ReturnsAsync(group);
         var userRepo = new Mock<IUserRepository>();
+        var historyRepo = new Mock<ITaskHistoryRepository>();
+        historyRepo.Setup(r => r.CreateAsync(It.IsAny<TaskHistory>())).ReturnsAsync(new TaskHistory { Id = "historyId" });
+        var notificationService = new Mock<NotificationService>();
+        var logger = new Mock<ILogger<TaskService>>();
         
-        var service = new TaskService(taskRepo.Object, groupRepo.Object, userRepo.Object);
+        var service = new TaskService(taskRepo.Object, groupRepo.Object, userRepo.Object, historyRepo.Object, notificationService.Object, logger.Object);
         var request = new CreateTaskRequest
         {
             GroupId = groupId,
@@ -121,8 +131,12 @@ public class TaskServiceTests
         groupRepo.Setup(r => r.GetByIdAsync(groupId))
             .ReturnsAsync(group);
         var userRepo = new Mock<IUserRepository>();
+        var historyRepo = new Mock<ITaskHistoryRepository>();
+        historyRepo.Setup(r => r.CreateAsync(It.IsAny<TaskHistory>())).ReturnsAsync(new TaskHistory { Id = "historyId" });
+        var notificationService = new Mock<NotificationService>();
+        var logger = new Mock<ILogger<TaskService>>();
         
-        var service = new TaskService(taskRepo.Object, groupRepo.Object, userRepo.Object);
+        var service = new TaskService(taskRepo.Object, groupRepo.Object, userRepo.Object, historyRepo.Object, notificationService.Object, logger.Object);
         var request = new CreateTaskRequest
         {
             GroupId = groupId,

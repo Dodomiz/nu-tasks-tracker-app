@@ -8,6 +8,7 @@ using TasksTracker.Api.Core.Domain;
 using TasksTracker.Api.Core.Interfaces;
 using TasksTracker.Api.Features.Groups.Models;
 using TasksTracker.Api.Features.Groups.Services;
+using TasksTracker.Api.Features.Notifications.Services;
 using Xunit;
 
 namespace TasksTracker.Api.Tests.Groups;
@@ -16,9 +17,10 @@ public class GroupServiceTests
 {
     private readonly Mock<IGroupRepository> _groupRepo = new();
     private readonly Mock<IUserRepository> _userRepo = new();
+    private readonly Mock<NotificationService> _notificationService = new();
     private readonly Mock<ILogger<GroupService>> _logger = new();
 
-    private GroupService CreateSut() => new(_groupRepo.Object, _userRepo.Object, _logger.Object);
+    private GroupService CreateSut() => new(_groupRepo.Object, _userRepo.Object, _notificationService.Object, _logger.Object);
 
     [Fact]
     public async Task CreateGroupAsync_ValidRequest_CreatesAndReturnsResponse()

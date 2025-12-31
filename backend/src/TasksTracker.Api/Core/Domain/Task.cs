@@ -23,6 +23,7 @@ public class TaskItem
     public int Difficulty { get; set; }
 
     public TaskStatus Status { get; set; } = TaskStatus.Pending;
+    public bool RequiresApproval { get; set; } = false;
 
     public DateTime DueAt { get; set; }
     public TaskFrequency Frequency { get; set; } = TaskFrequency.OneTime;
@@ -33,8 +34,9 @@ public class TaskItem
 
 public enum TaskStatus
 {
-    Pending,
-    InProgress,
-    Completed,
-    Overdue
+    Pending = 0,
+    InProgress = 1,
+    Completed = 2,
+    Overdue = 3,
+    WaitingForApproval = 4
 }

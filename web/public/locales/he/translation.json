@@ -126,7 +126,9 @@
             "pending": "ממתין",
             "inProgress": "בביצוע",
             "completed": "הושלם",
-            "overdue": "באיחור"
+            "overdue": "באיחור",
+            "waitingForApproval": "ממתין לאישור",
+            "changeLabel": "שנה סטטוס"
         },
         "emptyState": {
             "noTasks": "לא נמצאו משימות",
@@ -137,6 +139,7 @@
         "count": "מציג {{count}} מתוך {{total}} משימות",
         "due": "יעד",
         "overdue": "באיחור",
+        "requiresAdminApproval": "משימה זו דורשת אישור מנהל להשלמה",
         "error": {
             "loadFailed": "טעינת המשימות נכשלה. אנא נסה שוב."
         },
@@ -163,7 +166,14 @@
         "creating": "יוצר...",
         "createTask": "צור משימה",
         "taskCreated": "המשימה נוצרה!",
-        "errorCreatingTask": "שגיאה ביצירת משימה"
+        "errorCreatingTask": "שגיאה ביצירת משימה",
+        "approval": {
+            "requiresApproval": "דורש אישור מנהל",
+            "requiresApprovalDescription": "אם מופעל, רק מנהלים יכולים לסמן משימה זו כהושלמה",
+            "tooltip": "דורש אישור מנהל",
+            "enabled": "נדרש אישור",
+            "disabled": "לא נדרש אישור"
+        }
     },
     "settings": {
         "title": "הגדרות",
@@ -294,6 +304,22 @@
                 "OldFrequency": "תדירות קודמת",
                 "NewFrequency": "תדירות חדשה"
             }
+        }
+    },
+    "notifications": {
+        "title": "התראות",
+        "markAllAsRead": "סמן הכל כנקרא",
+        "markingAllAsRead": "מסמן...",
+        "empty": "אין התראות",
+        "error": "נכשל בטעינת התראות",
+        "retry": "נסה שוב",
+        "types": {
+            "TASK_ASSIGNED": "משימה הוקצתה לך",
+            "TASK_STATUS_CHANGED": "סטטוס משימה השתנה",
+            "TASK_PENDING_APPROVAL": "משימה ממתינה לאישור",
+            "GROUP_MEMBER_JOINED": "חבר חדש הצטרף לקבוצה",
+            "GROUP_MEMBER_REMOVED": "חבר הוסר מהקבוצה",
+            "GROUP_INVITATION_RECEIVED": "התקבלה הזמנה לקבוצה"
         }
     },
     "errors": {
